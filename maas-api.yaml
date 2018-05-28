@@ -424,12 +424,14 @@ paths:
           required: true
         - name: departAfter
           in: query
-          description: Departure time in seconds since 1970. Either this or `arriveBefore` need to be specified. You can also specify both to find trips that minimise duration within that window.
-          type: integer
+          type: string
+          format: date-time
+          description: Departure time in ISO 8601 format. Either this or `arriveBefore` need to be specified. You can also specify both to find trips that minimise duration within that window.
         - name: arriveBefore
           in: query
-          description: Arrival time in seconds since 1970. Either this or `departAfter` need to be specified. You can also specify both to find trips that minimise duration within that window.
-          type: integer
+          type: string
+          format: date-time
+          description: Arrival time in ISO 8601 format. Either this or `departAfter` need to be specified. You can also specify both to find trips that minimise duration within that window.
         - name: modes
           type: array
           in: query
@@ -877,8 +879,9 @@ paths:
                   type: string
                   description: Code of a StopLocation as previously returned by `locations.json`
               timeStamp:
-                type: integer
-                description: Seconds since 1970 of earliest time to include in timetable. Default value is current time.
+                type: string
+                format: date-time
+                description: Earlest time to include in timetable, in ISO 8601 format. Default value is current time.
               limit:
                 type: integer
                 description: Number of services to include in timetable.
@@ -963,8 +966,9 @@ paths:
                     startStopCode:
                       type: string
                     startTime:
-                      type: integer
-                      description: Departure time at `startStopCode` in seconds since 1970. The parameter is optional, but highly recommended. If you don't get real-time data, add this parameter.
+                      type: string
+                      format: date-time
+                      description: Departure time at `startStopCode` in ISO 8601 format. The parameter is optional, but highly recommended. If you don't get real-time data, add this parameter.
                     endStopCode:
                       type: string
                   required:
@@ -999,11 +1003,13 @@ paths:
                     startStopCode:
                       type: string
                     startTime:
-                      type: integer
-                      description: Predicted departure time based on real-time information in seconds since 1970.
+                      type: string
+                      format: date-time
+                      description: Predicted departure time based on real-time information in ISO 8601 format.
                     lastUpdate:
-                      type: integer
-                      description: Time the departure/arrival time prediction was made in seconds since 1970.
+                      type: string
+                      format: date-time
+                      description: Time the departure/arrival time prediction was made in ISO 8601 format.
                     realtimeVehicle:
                       # description: The vehicle for this specific service.
                       $ref: '#/definitions/RealTimeVehicle'
@@ -1046,8 +1052,9 @@ paths:
           description: Operator of service as returned other servlets. Not required but recommended as a `serviceTripID` might match multiple operators; in that case and when `operator` is not provide, a service details for a random operator will be returned.
         - name: embarkationDate
           in: query
-          type: integer
-          description: Departure time of service in seconds since 1970.
+          type: string
+          format: date-time
+          description: Departure time of service in ISO 8601 format.
           required: true
         - name: encode
           in: query
@@ -1263,8 +1270,9 @@ definitions:
         type: string
         description: Mode identifier for the transport mode to use starting at this location. Mode identifier should be as returned by regions.json.
       time:
-        type: integer
-        description: Time to start at this waypoint in seconds since 1970.
+        type: string
+        format: date-time
+        description: Time to start at this waypoint in ISO 8601 format.
     required:
       - lat
       - lng
@@ -1408,8 +1416,9 @@ definitions:
           Note that this can be *more* than the total spaces for providers that have free-floating bicycles that are left at a station even though there's no bike dock.
         type: integer
       lastUpdated:
-        description: Timestamp `availableBikes` got recorded in seconds since 1970
-        type: integer
+        type: string
+        format: date-time
+        description: Timestamp `availableBikes` got recorded in ISO 8601 format
       source:
         $ref: '#/definitions/DataSourceAttribution'
     required:
@@ -1446,8 +1455,9 @@ definitions:
         description: Real-time information of available spaces
         type: integer
       lastUpdated:
-        description: Timestamp `availableSpaces` got recorded in seconds since 1970
-        type: integer
+        type: string
+        format: date-time
+        description: Timestamp `availableSpaces` got recorded in ISO 8601 format
       onStreetParking:
         type: boolean
       encodedParkingArea:
@@ -2532,8 +2542,9 @@ definitions:
     - type: object
       properties:
         startTime:
-          type: integer
-          description: Departure of the service  as per timetable in seconds since 1970.
+          type: string
+          format: date-time
+          description: Departure of the service  as per timetable in ISO 8601 format.
         modeInfo:
           $ref: '#/definitions/ModeInfo'
         realTimeStatus:
@@ -2623,11 +2634,13 @@ definitions:
                 type: integer
                 description: Angle of travel from this stop to the next. As true bearing. See http://en.wikipedia.org/wiki/Haversine_formula or http://www.movable-type.co.uk/scripts/latlong.html.
               arrival:
-                type: integer
-                description: Arrival time at this stop in seconds since 1970.
+                type: string
+                format: date-time
+                description: Arrival time at this stop in ISO 8601 format.
               departure:
-                type: integer
-                description: Departure time from this stop in seconds since 1970.
+                type: string
+                format: date-time
+                description: Departure time from this stop in ISO 8601 format.
               relativeArrival:
                 type: integer
                 description: Arrival time at this stop in seconds since start of the segment (see `includeStops` input for `routing.json`). Note that this is negative for non-travelled shapes before the travelled shape and can be negative for the first stop of the travelled shape.
@@ -2667,11 +2680,13 @@ definitions:
         type: integer
         description: Hash code of the referenced SegmentTemplate
       startTime:
-        type: integer
-        description: Seconds since 1970. Reflects real-time data if `realTime == true`.
+        type: string
+        format: date-time
+        description: In ISO 8601 format. Reflects real-time data if `realTime == true`.
       endTime:
-        type: integer
-        description: Seconds since 1970. Reflects real-time data if `realTime == true`
+        type: string
+        format: date-time
+        description: In ISO 8601 format. Reflects real-time data if `realTime == true`
       realTime:
         type: boolean
         description: Present and set to `true` if `startTime` and `endTime` reflect real-time data.
@@ -2681,8 +2696,9 @@ definitions:
         type: string
         description: For transit segments (required). Matches GTFS `trip_id`.
       timetableStartTime:
-        type: integer
-        description: For transit segments (optional). Seconds since 1970 according to the timetable, if there's real-time data available.
+        type: string
+        format: date-time
+        description: For transit segments (optional). Time according to the timetable in ISO 8601 format, if there's real-time data available.
       stops:
         type: integer
         description: For transit segments (optional). Number of stops you need to stay on this segment. Does not include embarkation stop, but does include disembarkation stops. E.g., would say `1` if you get on the bus and get off at the next stop. Note here that for flights this differs from the usual counting, i.e., if this is a flight and this value is `1`, then this is indicates a direct "non-stop" flight.
@@ -2925,11 +2941,13 @@ definitions:
   Trip:
     properties:
       depart:
-        type: integer
-        description: Seconds since 1970
+        type: string
+        format: date-time
+        description: Departure time in ISO 8601 format
       arrive:
-        type: integer
-        description: Seconds since 1970
+        type: string
+        format: date-time
+        description: Arrival time at destination in ISO 8601 format
       segments:
         type: array
         items:
