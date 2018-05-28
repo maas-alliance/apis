@@ -32,38 +32,55 @@ tags:
   - name: Public Transport
 
 paths:
-  /regions.json:
-    post:
-      tags:
+  /regions:
+    get:
+      tags: 
         - Configuration
-      summary: Available regions with host names per region.
-      description:
-        Lists available regions, their server host names and available
-        transport modes. Provide optional hash code to only return output
-        if the data has changed.
+      summary: List of covered regions
       parameters:
-        - name: input
-          in: body
-          schema:
-            $ref: '#/definitions/RegionsInput'
+        - name: hashCode
+          in: query
+          type: integer
+          required: false
+          description: Hash code of your last response. If this is supplied the response might return a 304, if the data has not changed.
+
+      description:
+        Lists available regions and available transport modes. Provide optional hash code to only return output if the data has changed.
       responses:
         200:
           description: Available regions and modes
           schema:
             $ref: '#/definitions/RegionsResponse'
-
-  /regionInfo.json:
-    post:
-      tags:
+        304:
+          description: No change
+          
+  /regions/{id}:
+    get:
+      tags: 
         - Configuration
-      summary: TSPs per region
-      description:
-        Retrieves basic information about covered transport service providers for the specified regions.
+      summary: Covered region
       parameters:
-        - name: input
-          in: body
+        - name: id
+          in: path
+          type: string
+          required: true
+      responses:
+        200:
+          description: Successful response
           schema:
-            $ref: '#/definitions/RegionInfoInput'
+            $ref: '#/definitions/Region'
+
+
+  /regions/{id}/details:
+    get:
+      tags: 
+        - Configuration
+      summary: Details of a covered region
+      parameters:
+        - name: id
+          in: path
+          type: string
+          required: true
       responses:
         200:
           description: Successful response
@@ -84,9 +101,9 @@ paths:
             type: object
             description: Use `modes` to filter by tranport modes. Only results for the given modes will be retuned. When `full` paramater is false, it will retrieve a list of operator IDs for the given region and `modes` and `onlyRealTime` if any. You can also retrieve information for a list of particular operators using `operatorIDs` or `operatorNames`, providing their IDs (or names) as they were given before as a list member in this very same endpoint. The use of filters like `modes`, `onlyRealTime`, `operatorNames` and/or `operatorIDs` could lead to a empty response. In order to prevent this, make sure such combinations are posible, using previously fetched information.
             properties:
-              region:
+              regionID:
                 type: string
-                description: Region name/code from `regions.json`.
+                description: Region id from `/regions`.
               modes:
                 type: array
                 items:
@@ -115,7 +132,7 @@ paths:
             required:
               - region
             example:
-              region: US_CA_LosAngeles
+              regionID: US_CA_LosAngeles
               modes:
                 - pt_pub_tram
                 - pt_pub_bus
@@ -194,9 +211,9 @@ paths:
             type: object
             description: Use `modes` to filter by tranport modes. Only results for the given modes will be retuned. When `full` paramater is false, it will retrieve a list of route IDs for the given region/operator and `modes` and `onlyRealTime` if any. You can also retrieve information for a particular list of routes using `routeIDs` or `routeNames`, providing their IDs (or names) as they were given before as a list member in this very same endpoint. The use of filters like `modes`, `onlyRealTime`, `routeNames` and/or `routeIDs` could lead to a empty response. In order to prevent this, make sure such combinations are posible, using previously fetched information.
             properties:
-              region:
+              regionID:
                 type: string
-                description: Region name/code from `regions.json`.
+                description: Region id from `/regions`.
               operatorID:
                 type: string
                 description: TSP ID from `info/operator.json`.
@@ -229,7 +246,7 @@ paths:
               - region
               - operatorID
             example:
-              region: US_CA_LosAngeles
+              regionID: US_CA_LosAngeles
               operatorID: LACMTA_Rail
               modes:
                 - pt_pub_tram
@@ -327,9 +344,9 @@ paths:
             type: object
             description: When `full` paramater is false, it will retrieve a list of service trips IDs for the given route and `onlyRealTime` if any. You can also retrieve information for a particular list of services using `serviceTripIDs`.
             properties:
-              region:
+              regionID:
                 type: string
-                description: Region name/code from `regions.json`.
+                description: Region id from `/regions`.
               operatorID:
                 type: string
                 description: TSP ID from `info/operator.json`.
@@ -355,7 +372,7 @@ paths:
               - operatorID
               - routeID
             example:
-              region: US_CA_LosAngeles
+              regionID: US_CA_LosAngeles
               operatorID: LACMTA_Rail
               routeID:  806
               serviceTripIDs:
@@ -404,14 +421,6 @@ paths:
       description:
         Calculates door-to-door trips for the specified mode(s).
       parameters:
-        - name: v
-          in: query
-          type: integer
-          description: Requested version number of output. Needs to be 11.
-          minimum: 11
-          maximum: 11
-          multipleOf: 1
-          required: true
         - name: from
           in: query
           type: string
@@ -438,7 +447,7 @@ paths:
           items:
             type: string
           description:
-            Modes for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_tax_FLITWAYS` exactly as returned by `regions.json`. If multiple modes are specified only trips which mix at least two of these modes are returned. [Details of single-modal and multi-modal queries are on our developer site](https://developer.tripgo.com/faq/#single-modal-vs-multi-modal-routing).
+            Modes for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_tax_FLITWAYS` exactly as returned by `/regions`. If multiple modes are specified only trips which mix at least two of these modes are returned. [Details of single-modal and multi-modal queries are on our developer site](https://developer.tripgo.com/faq/#single-modal-vs-multi-modal-routing).
           required: true
         - name: avoidModes
           type: array
@@ -486,7 +495,7 @@ paths:
         - name: ir
           type: boolean
           in: query
-          description: Boolean if interregional results, i.e., between regions as defined as in `regions.json`, should be returned.
+          description: Boolean if interregional results, i.e., between regions as defined as in `/regions`, should be returned.
           default: false
         - name: conc
           description: If concession pricing should be use for public transport
@@ -566,14 +575,6 @@ paths:
         Rather than constructing this URL directly, you should get it
         from the `temporaryURL` property from a computed trip.
       parameters:
-        - name: v
-          in: query
-          type: integer
-          description: Requested version number of output. Needs to be 11.
-          minimum: 11
-          maximum: 11
-          multipleOf: 1
-          required: true
         - name: DOCUMENTATION_NOT_COMPLETE
           in: query
           type: boolean
@@ -624,15 +625,6 @@ paths:
 
         Rather than constructing this URL directly, you should get it
         from the `updateURL` property from a computed trip.
-      parameters:
-        - name: v
-          in: query
-          type: integer
-          description: Requested version number of output. Needs to be 11.
-          minimum: 11
-          maximum: 11
-          multipleOf: 1
-          required: true
       responses:
         200:
           description: Successful response, same format as routing.json, but with only one trip.
@@ -766,9 +758,9 @@ paths:
           schema:
             type: object
             properties:
-              region:
+              regionID:
                 type: string
-                description: Region code from `regions.json` for which to fetch locations from.
+                description: Region code from `/regions` for which to fetch locations from.
               level:
                 type: integer
                 description: 1 to get major locations that should be displayed when zoomed out. 2 to get minor locations that should be displayed when zoomed in.
@@ -800,7 +792,7 @@ paths:
             required:
               - region
             example:
-              region: AU_NSW_Sydney
+              regionID: AU_NSW_Sydney
               level: 2
               cellIDs:
                 - -2540#11340
@@ -853,7 +845,7 @@ paths:
       description: |
         Gets the departure timetable for a provided list of transit stops. It returns the next `limit` departures after `timeStamp` across any of the provided `embarkationStops`. If multiple stops are provided, the returned services might therefore only cover a subset of the provided stops.
 
-        If `disembarkationStops` is provided, then the returned timetable covers only services between any of the embarkation stops and any of the disembarkation stops. If the region of the embarkation stops and the region of the disembarkations stops is not the same, then you must specify the `disembarkationRegion` of the `disembarkationStops`.
+        If `disembarkationStops` is provided, then the returned timetable covers only services between any of the embarkation stops and any of the disembarkation stops. If the region of the embarkation stops and the region of the disembarkations stops is not the same, then you must specify the `disembarkationRegionID` of the `disembarkationStops`.
 
         Note that the the stop codes in the embarkation stops might *not* match the stop codes provided in the input. This happens if the input specified the stop code of a "parent" station (e.g., a major train station) but all the departures are from one of the parent station's "children" (e.g., a platform of that train station). If that's the case, then the `parentInfo` array will provide additional information on the parent station and its children.
       parameters:
@@ -862,17 +854,17 @@ paths:
           schema:
             type: object
             properties:
-              region:
+              embarkationRegionID:
                 type: string
-                description: Region code from `regions.json` for which to fetch the timetable.
+                description: Region code from `/regions` for which to fetch the timetable.
               embarkationStops:
                 type: array
                 items:
                   type: string
                   description: Code of a StopLocation as previously returned by `locations.json`. Currently only a single parent stop is allowed in that list.
-              disembarkationRegion:
+              disembarkationRegionID:
                 type: string
-                description: Region code from `regions.json` for the `disembarkationStops` when the region of `embarkationStops` and `disembarkationStops` does not match.
+                description: Region code from `/regions` for the `disembarkationStops` when the region of `embarkationStops` and `disembarkationStops` does not match.
               disembarkationStops:
                 type: array
                 items:
@@ -890,7 +882,7 @@ paths:
               - region
               - embarkationStops
             example:
-              region: AU_NSW_Sydney
+              embarkationRegionID: AU_NSW_Sydney
               embarkationStops:
                 - "2035143"
       responses:
@@ -951,9 +943,9 @@ paths:
           schema:
             type: object
             properties:
-              region:
+              regionID:
                 type: string
-                description: Region code from `regions.json` for which to fetch the real-time information.
+                description: Region code from `/regions` for which to fetch the real-time information.
               services:
                 type: array
                 items:
@@ -979,7 +971,7 @@ paths:
               - region
               - services
             example:
-              region: AU_NSW_Sydney
+              regionID: AU_NSW_Sydney
               services:
                 - operator: Sydney Buses
                   serviceTripID: "76641565_20160307_11954"
@@ -1039,7 +1031,7 @@ paths:
         - name: region
           in: query
           type: string
-          description: Region identifier as returned by `regions.json`.
+          description: Region identifier as returned by `/regions`.
           required: true
         - name: serviceTripID
           in: query
@@ -1133,23 +1125,6 @@ paths:
           description: Bad request due to bad input data
 
 definitions:
-  RegionsInput:
-    type: object
-    properties:
-      v:
-        type: number
-        format: int32
-        description: Version number
-        minimum: 2
-        maximum: 2
-        multipleOf: 1
-      hashCode:
-        type: integer
-        description: Hash code of your last response. If this is supplied the response might only consist of the hashCode and no other content, if the data has not changed.
-    required:
-      - v
-    example:
-      v: 2
 
   RegionsResponse:
     properties:
@@ -1171,13 +1146,13 @@ definitions:
   RegionInfoInput:
     type: object
     properties:
-      region:
+      regionID:
         type: string
-        description: Region name/code from `regions.json`
+        description: Region id from `/regions`
     required:
       - region
     example:
-      region: DE_HH_Hamburg
+      regionID: DE_HH_Hamburg
 
   RegionInfoResponse:
     properties:
@@ -1216,12 +1191,6 @@ definitions:
   ConfigInput:
     type: object
     properties:
-      v:
-        type: integer
-        description: Requested version number of output. Needs to be 11.
-        minimum: 11
-        maximum: 11
-        multipleOf: 1
       tt:
         type: integer
         description: Preferred minimum transfer time in minutes.
@@ -1255,8 +1224,6 @@ definitions:
         description:
           String with `(%f,%f,%f,%f)` format specifying the user's weighting profile. In order, the weights represent price, environmental impact, duration, and convenience. Each value should be between 0.1 and 2.0. 0.1 means the related cost is unimportant and 2.0 means it's very important to the user. This impacts both the routing results and each trip's `weightedScore` value.
         default: (1, 1, 1, 1)
-    required:
-      - v
 
   TripInputPattern:
     properties:
@@ -1268,7 +1235,7 @@ definitions:
         description: Longitude of the waypoint
       mode:
         type: string
-        description: Mode identifier for the transport mode to use starting at this location. Mode identifier should be as returned by regions.json.
+        description: Mode identifier for the transport mode to use starting at this location. Mode identifier should be as returned by /regions.
       time:
         type: string
         format: date-time
@@ -2103,9 +2070,9 @@ definitions:
 
   Region:
     properties:
-      name:
+      id:
         type: string
-        description: Internal identifier for the region
+        description: Identifier for the region
       cities:
         type: array
         description: List of bigger cities covered by this region. Note that this can be empty.
@@ -2137,18 +2104,18 @@ definitions:
         type: array
         description:
           List of mode identifiers that are available in this region (but not necessarily everywhere in that region).
-          Look at `modes` array in `regions.json` to get more details on each mode. These are also the modes that can be
+          Look at `modes` array in `/regions` to get more details on each mode. These are also the modes that can be
            used as input to any routing endpoint. See
            https://developer.tripgo.com/faq/#mode-identifiers.
         items:
           type: string
     required:
-      - name
+      - id
       - polygon
       - cities
       - modes
     example:
-      name: DE_BV_Nuremberg
+      id: DE_BV_Nuremberg
       polygon: SDf9723rhkjFKHAFB
       cities:
         - title: Nuremberg
