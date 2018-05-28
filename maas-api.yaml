@@ -431,6 +431,11 @@ paths:
           description: Successful response. Can include many trips.
           schema:
             $ref: '#/definitions/RoutingResponse'
+        400:
+          description: Bad request, most likely due to issues with the input
+          schema:
+            $ref: '#/definitions/InputError'
+
 
   /waypoint:
     post:
@@ -1118,7 +1123,7 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SegmentTemplate'
-      regions:
+      regionIDs:
         type: array
         items:
           type: string
@@ -1126,12 +1131,12 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/RealTimeAlert'
-      error:
-        type: string
-      usererror:
-        type: boolean
+    required:
+      - groups
+      - segmentTempaltes
+      - regionIDs
     # example:
-    #   regions:
+    #   regionIDs:
     #     - DE_BV_Nuremberg
 
   ConfigInput:
