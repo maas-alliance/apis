@@ -2728,7 +2728,7 @@ components:
         wheelchairAccessible: true
 
     SegmentTemplate:
-      allOf:
+      oneOf:
       - $ref: '#/components/schemas/SegmentTemplateMovingTransit'
       - $ref: '#/components/schemas/SegmentTemplateMovingNonTransit'
       - $ref: '#/components/schemas/SegmentTemplateStationary'
