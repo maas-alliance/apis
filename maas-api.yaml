@@ -1433,6 +1433,10 @@ definitions:
           Encoded polygon (or polyline) of parking area. Typically a polyline for on-street parking and a polygon for off-street parking.
           Encoded using Google's Encoded Polyline Algorithm. See https://developers.google.com/maps/documentation/utilities/polylinealgorithm.
       openingHours:
+        type: string
+        description: Opening hours
+        externalDocs:
+          url: http://schema.org/openingHours
         $ref: '#/definitions/OpeningHours'
       pricingTable:
         type: array
@@ -1756,48 +1760,10 @@ definitions:
       - modeInfo
 
   OpeningHours:
-    properties:
-      timezone:
-        description: Time zone for the opening hours
-        type: string
-      days:
-        type: array
-        items:
-          type: object
-          properties:
-            name:
-              description: Identifier for week
-              type: string
-              enum:
-                - MONDAY
-                - TUESDAY
-                - WEDNESDAY
-                - THURSDAY
-                - FRIDAY
-                - SATURDAY
-                - SUNDAY
-                - PUBLIC_HOLIDAY
-            times:
-              description: Opening times for this day of week. Empty array if it's closed that day.
-              type: array
-              items:
-                type: object
-                properties:
-                  opens:
-                    type: string
-                    description: Opening time formatted as HH:MM
-                  closes:
-                    type: string
-                    description: Opening time formatted as HH:MM
-                required:
-                  - opens
-                  - closes
-          required:
-            - name
-            - times
-    required:
-      - timezone
-      - days
+    type: string
+    description: Opening hours
+    externalDocs:
+      url: http://schema.org/openingHours
     example:
       timezone: Australia/Sydney
       days:
