@@ -50,7 +50,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/Regions'
+                $ref: '#/components/schemas/RegionsResponse'
         304:
           description: No change
           
@@ -90,7 +90,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/RegionInfo'
+                $ref: '#/components/schemas/RegionInfoResponse'
 
   /info/operator.json:
     post:
@@ -204,7 +204,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/InputError'
+                $ref: '#/components/schemas/InputError'
 
   /info/route.json:
     post:
@@ -341,7 +341,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/InputError'
+                $ref: '#/components/schemas/InputError'
 
   /info/service.json:
     post:
@@ -428,7 +428,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/InputError'
+                $ref: '#/components/schemas/InputError'
 
   /routing:
     post:
@@ -441,7 +441,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/parameters/Routing'
+              $ref: '#/components/schemas/RoutingInput'
 
       responses:
         200:
@@ -449,13 +449,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/Routing'
+                $ref: '#/components/schemas/RoutingResponse'
         400:
           description: Bad request, most likely due to issues with the input
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/InputError'
+                $ref: '#/components/schemas/InputError'
 
 
   /waypoint:
@@ -479,9 +479,9 @@ paths:
                 waypoints:
                   type: array
                   items:
-                    $ref: '#/components/parameters/TripPattern'
+                    $ref: '#/components/schemas/TripInputPattern'
                 config:
-                  $ref: '#/components/parameters/Config'
+                  $ref: '#/components/schemas/ConfigInput'
               required:
                 - config
                 - waypoints
@@ -491,7 +491,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/Routing'
+                $ref: '#/components/schemas/RoutingResponse'
 
   /trip/{id}:
     get:
@@ -516,7 +516,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/Routing'
+                $ref: '#/components/schemas/RoutingResponse'
     parameters:
       - name: id
         in: path
@@ -569,7 +569,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/Routing'
+                $ref: '#/components/schemas/RoutingResponse'
     parameters:
       - name: id
         in: path
@@ -695,7 +695,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/InputError'
+                $ref: '#/components/schemas/InputError'
 
     post:
       tags:
@@ -769,7 +769,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/InputError'
+                $ref: '#/components/schemas/InputError'
 
   /locationInfo.json:
     get:
@@ -1108,12 +1108,12 @@ paths:
 
 components:
 
-  parameters:
+  schemas:
 
-    Routing:
+    RoutingInput:
       properties:
         config:
-          $ref: '#/components/parameters/Config'
+          $ref: '#/components/schemas/ConfigInput'
         from:
           type: string
           description: Origin coordinate as `(lat,lng)"address"` string (the `"address"` part is optional).
@@ -1163,7 +1163,7 @@ components:
         - to
         - modes
 
-    Config:
+    ConfigInput:
       type: object
       properties:
         tt:
@@ -1200,7 +1200,7 @@ components:
             String with `(%f,%f,%f,%f)` format specifying the user's weighting profile. In order, the weights represent price, environmental impact, duration, and convenience. Each value should be between 0.1 and 2.0. 0.1 means the related cost is unimportant and 2.0 means it's very important to the user. This impacts both the routing results and each trip's `weightedCost` value.
           default: (1, 1, 1, 1)
 
-    TripPattern:
+    TripInputPattern:
       properties:
         lat:
           type: number
@@ -1220,9 +1220,7 @@ components:
         - lng
         - mode
 
-  responses:
-
-    Regions:
+    RegionsResponse:
       properties:
         hashCode:
           type: integer
@@ -1239,7 +1237,7 @@ components:
               description: This is a map/dictionary with multiple items of this type. Each key is a mode identifier. See https://developer.tripgo.com/faq/#mode-identifiers.
               $ref: '#/components/schemas/ModeIdentifier'
 
-    RegionInfo:
+    RegionInfoResponse:
       properties:
         regions:
           type: array
@@ -1247,7 +1245,7 @@ components:
           items:
             $ref: '#/components/schemas/RegionDetail'
 
-    Routing:
+    RoutingResponse:
       properties:
         groups:
           type: array
@@ -1289,8 +1287,6 @@ components:
               reason:
                 type: string
 
-
-  schemas:
 
     BookingInfo:
       properties:
