@@ -1,4 +1,4 @@
-swagger: "2.0"
+openapi: 3.0.0
 info:
   version: v0.1
   title: MaaS API
@@ -14,15 +14,12 @@ info:
 
   contact:
     name: MaaS Alliance
+    url: "https://maas-alliance.eu"
   license:
     name: Apache License 2.0
     url: "https://github.com/maas-alliance/apis/LICENSE"
-schemes:
-  - https
-consumes:
-  - application/json
-produces:
-  - application/json
+servers:
+  - url: "https://api.tripgo.com/v2"
 tags:
   - name: Configuration
   - name: Trip Planning
@@ -40,17 +37,20 @@ paths:
       parameters:
         - name: hashCode
           in: query
-          type: integer
           required: false
           description: Hash code of your last response. If this is supplied the response might return a 304, if the data has not changed.
+          schema:
+            type: integer
 
       description:
         Lists available regions and available transport modes. Provide optional hash code to only return output if the data has changed.
       responses:
         200:
           description: Available regions and modes
-          schema:
-            $ref: '#/definitions/RegionsResponse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/Regions'
         304:
           description: No change
           
@@ -62,13 +62,16 @@ paths:
       parameters:
         - name: id
           in: path
-          type: string
           required: true
+          schema:
+            type: string
       responses:
         200:
           description: Successful response
-          schema:
-            $ref: '#/definitions/Region'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Region'
 
   /regions/{id}/details:
     get:
@@ -78,13 +81,16 @@ paths:
       parameters:
         - name: id
           in: path
-          type: string
           required: true
+          schema:
+            type: string
       responses:
         200:
           description: Successful response
-          schema:
-            $ref: '#/definitions/RegionInfoResponse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/RegionInfo'
 
   /info/operator.json:
     post:
@@ -93,108 +99,112 @@ paths:
       summary: List of TSPs for a particular region.
       description:
         Retrieves detailed information about covered transport service providers for a specified region.
-      parameters:
-        - name: input
-          in: body
-          schema:
-            type: object
-            description: Use `modes` to filter by tranport modes. Only results for the given modes will be retuned. When `full` paramater is false, it will retrieve a list of operator IDs for the given region and `modes` and `onlyRealTime` if any. You can also retrieve information for a list of particular operators using `operatorIDs` or `operatorNames`, providing their IDs (or names) as they were given before as a list member in this very same endpoint. The use of filters like `modes`, `onlyRealTime`, `operatorNames` and/or `operatorIDs` could lead to a empty response. In order to prevent this, make sure such combinations are posible, using previously fetched information.
-            properties:
-              regionID:
-                type: string
-                description: Region id from `/regions`.
-              modes:
-                type: array
-                items:
-                  type: string
-                description: Public transit modes (pt_pub_*) for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_pub_subway`. In absence, all modes are included.
-              operatorIDs:
-                type: array
-                items:
-                  type: string
-                  description: Operator ID.
-                description: Operator IDs to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `operatorNames`.
-              operatorNames:
-                type: array
-                items:
-                  type: string
-                  description: Operator name.
-                description: Operator names to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `operatorIDs`.
-              onlyRealTime:
-                type: boolean
-                description: Boolean to filter only operators with Real Time support. When true, returned operator list will contain only TSP with Real Time service.
-                default: false
-              full:
-                type: boolean
-                description: Boolean if result should include full information for operator/s or just a list with all their IDs ignoring `mode` array in response.
-                default: false
-            required:
-              - region
-            example:
-              regionID: US_CA_LosAngeles
-              modes:
-                - pt_pub_tram
-                - pt_pub_bus
-              full: true
-      responses:
-        200:
-          description: Successful response
-          schema:
-            type: array
-            items:
+      requestBody:
+        content:
+          application/json:
+            schema:
               type: object
-              description: TSP information.
+              description: Use `modes` to filter by tranport modes. Only results for the given modes will be retuned. When `full` paramater is false, it will retrieve a list of operator IDs for the given region and `modes` and `onlyRealTime` if any. You can also retrieve information for a list of particular operators using `operatorIDs` or `operatorNames`, providing their IDs (or names) as they were given before as a list member in this very same endpoint. The use of filters like `modes`, `onlyRealTime`, `operatorNames` and/or `operatorIDs` could lead to a empty response. In order to prevent this, make sure such combinations are posible, using previously fetched information.
               properties:
-                id:
+                regionID:
                   type: string
-                  description: TSP ID.
-                name:
-                  type: string
-                  description: TSP name.
+                  description: Region id from `/regions`.
                 modes:
                   type: array
                   items:
-                    description: Detailed information for this operator under a specific public transport mode.
-                    type: object
-                    properties:
-                      mode:
-                        type: string
-                        description: Operator's mode identifier.
-                      numberOfServices:
-                        type: integer
-                        description: Total number of services on the timetable this operator is running within a typical week.
-                      realTime:
-                        $ref: '#/definitions/RealtimeData'
-            example:
-              - id: LACMTA
-                name: Metro - Los Angeles
+                    type: string
+                  description: Public transit modes (pt_pub_*) for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_pub_subway`. In absence, all modes are included.
+                operatorIDs:
+                  type: array
+                  items:
+                    type: string
+                    description: Operator ID.
+                  description: Operator IDs to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `operatorNames`.
+                operatorNames:
+                  type: array
+                  items:
+                    type: string
+                    description: Operator name.
+                  description: Operator names to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `operatorIDs`.
+                onlyRealTime:
+                  type: boolean
+                  description: Boolean to filter only operators with Real Time support. When true, returned operator list will contain only TSP with Real Time service.
+                  default: false
+                full:
+                  type: boolean
+                  description: Boolean if result should include full information for operator/s or just a list with all their IDs ignoring `mode` array in response.
+                  default: false
+              required:
+                - region
+              example:
+                regionID: US_CA_LosAngeles
                 modes:
-                  - mode: pt_pub_tram
-                    numberOfServices: 5698
-                  - mode: pt_pub_bus
-                    numberOfServices: 36855
-                    realtime:
-                      - alerts: false
-                      - positions: true
-                      - updates: true
-              - id: 27
-                name: LADOT
-                modes:
-                  - mode: pt_pub_bus
-                    numberOfServices: 15828
-              - id: 6216179
-                name: Big Blue Bus
-                modes:
-                  - mode: pt_pub_bus
-                    numberOfServices: 7702
-                    realtime:
-                      - alerts: true
-                      - positions: true
-                      - updates: false
+                  - pt_pub_tram
+                  - pt_pub_bus
+                full: true
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  description: TSP information.
+                  properties:
+                    id:
+                      type: string
+                      description: TSP ID.
+                    name:
+                      type: string
+                      description: TSP name.
+                    modes:
+                      type: array
+                      items:
+                        description: Detailed information for this operator under a specific public transport mode.
+                        type: object
+                        properties:
+                          mode:
+                            type: string
+                            description: Operator's mode identifier.
+                          numberOfServices:
+                            type: integer
+                            description: Total number of services on the timetable this operator is running within a typical week.
+                          realTime:
+                            $ref: '#/components/schemas/RealtimeData'
+                example:
+                  - id: LACMTA
+                    name: Metro - Los Angeles
+                    modes:
+                      - mode: pt_pub_tram
+                        numberOfServices: 5698
+                      - mode: pt_pub_bus
+                        numberOfServices: 36855
+                        realtime:
+                          - alerts: false
+                          - positions: true
+                          - updates: true
+                  - id: 27
+                    name: LADOT
+                    modes:
+                      - mode: pt_pub_bus
+                        numberOfServices: 15828
+                  - id: 6216179
+                    name: Big Blue Bus
+                    modes:
+                      - mode: pt_pub_bus
+                        numberOfServices: 7702
+                        realtime:
+                          - alerts: true
+                          - positions: true
+                          - updates: false
         400:
           description: Bad request, most likely due to issues with the input or non-posible scenarios.
-          schema:
-            $ref: '#/definitions/InputError'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/InputError'
 
   /info/route.json:
     post:
@@ -203,131 +213,135 @@ paths:
       summary: List of routes for a particular TSP.
       description:
         Retrieves detailed information about routes for a specified operator & region.
-      parameters:
-        - name: input
-          in: body
-          schema:
-            type: object
-            description: Use `modes` to filter by tranport modes. Only results for the given modes will be retuned. When `full` paramater is false, it will retrieve a list of route IDs for the given region/operator and `modes` and `onlyRealTime` if any. You can also retrieve information for a particular list of routes using `routeIDs` or `routeNames`, providing their IDs (or names) as they were given before as a list member in this very same endpoint. The use of filters like `modes`, `onlyRealTime`, `routeNames` and/or `routeIDs` could lead to a empty response. In order to prevent this, make sure such combinations are posible, using previously fetched information.
-            properties:
-              regionID:
-                type: string
-                description: Region id from `/regions`.
-              operatorID:
-                type: string
-                description: TSP ID from `info/operator.json`.
-              modes:
-                type: array
-                items:
-                  type: string
-                description: Public transit modes (pt_pub_*) for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_pub_subway`. In absence, all modes are included.
-              routesIDs:
-                type: array
-                items:
-                  type: string
-                  description: Route ID.
-                description: Route IDs to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `routeNames`.
-              routesNames:
-                type: array
-                items:
-                  type: string
-                  description: Route name.
-                description: Route names to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `routeIDs`.
-              onlyRealTime:
-                type: boolean
-                description: Boolean to filter only routes with Real Time support. When true, returned route list will contain only routes with Real Time service.
-                default: false
-              full:
-                type: boolean
-                description: Boolean if result should include full information for route/s or just a list with all their IDs.
-                default: false
-            required:
-              - region
-              - operatorID
-            example:
-              regionID: US_CA_LosAngeles
-              operatorID: LACMTA_Rail
-              modes:
-                - pt_pub_tram
-              full: true
-      responses:
-        200:
-          description: Successful response
-          schema:
-            type: array
-            items:
+      requestBody:
+        content:
+          application/json:
+            schema:
               type: object
-              description: Route information.
+              description: Use `modes` to filter by tranport modes. Only results for the given modes will be retuned. When `full` paramater is false, it will retrieve a list of route IDs for the given region/operator and `modes` and `onlyRealTime` if any. You can also retrieve information for a particular list of routes using `routeIDs` or `routeNames`, providing their IDs (or names) as they were given before as a list member in this very same endpoint. The use of filters like `modes`, `onlyRealTime`, `routeNames` and/or `routeIDs` could lead to a empty response. In order to prevent this, make sure such combinations are posible, using previously fetched information.
               properties:
-                id:
+                regionID:
                   type: string
-                  description: Route ID.
-                name:
+                  description: Region id from `/regions`.
+                operatorID:
                   type: string
-                  description: Route name.
-                mode:
-                  type: string
-                  description: Route's mode identifier.
-                numberOfServices:
-                  type: integer
-                  description: Total number of services on the timetable this route is running within a typical week.
-                stops:
+                  description: TSP ID from `info/operator.json`.
+                modes:
                   type: array
                   items:
                     type: string
-                    description: Stop code.
-                  description: Used stops set for this route.
-                routeColor:
-                  $ref: '#/definitions/RGBColor'
-                realTime:
-                  $ref: '#/definitions/RealtimeData'
-            example:
-                - id: 803
-                  name: Metro Green Line  (803)
-                  mode: pt_pub_tram
-                  numberOfServices: 485
-                  stops:
-                    - 80314
-                    - 80312
-                    - 80307
-                    - 80305
-                    - 80301
-                - id: 806
-                  name: Metro Expo Line  (806)
-                  mode: pt_pub_tram
-                  numberOfServices: 562
-                  stops:
-                    - 80137
-                    - 80122
-                    - 80139
-                    - 80136
-                    - 80125
-                    - 80138
-                  routeColor:
-                    - blue: 198
-                    - green: 103
-                    - red: 0
-                  realtime:
-                    - alerts: false
-                    - positions: true
-                    - updates: false
-                - id: 804
-                  name: Metro Gold Line  (804)
-                  mode: pt_pub_tram
-                  numberOfServices: 120
-                  stops:
-                    - 80404
-                    - 80402
-                    - 80418
-                    - 80426
-                    - 80419
-                    - 80410
-                    - 80427
-                    - 80411
+                  description: Public transit modes (pt_pub_*) for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_pub_subway`. In absence, all modes are included.
+                routesIDs:
+                  type: array
+                  items:
+                    type: string
+                    description: Route ID.
+                  description: Route IDs to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `routeNames`.
+                routesNames:
+                  type: array
+                  items:
+                    type: string
+                    description: Route name.
+                  description: Route names to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `routeIDs`.
+                onlyRealTime:
+                  type: boolean
+                  description: Boolean to filter only routes with Real Time support. When true, returned route list will contain only routes with Real Time service.
+                  default: false
+                full:
+                  type: boolean
+                  description: Boolean if result should include full information for route/s or just a list with all their IDs.
+                  default: false
+              required:
+                - region
+                - operatorID
+              example:
+                regionID: US_CA_LosAngeles
+                operatorID: LACMTA_Rail
+                modes:
+                  - pt_pub_tram
+                full: true
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  description: Route information.
+                  properties:
+                    id:
+                      type: string
+                      description: Route ID.
+                    name:
+                      type: string
+                      description: Route name.
+                    mode:
+                      type: string
+                      description: Route's mode identifier.
+                    numberOfServices:
+                      type: integer
+                      description: Total number of services on the timetable this route is running within a typical week.
+                    stops:
+                      type: array
+                      items:
+                        type: string
+                        description: Stop code.
+                      description: Used stops set for this route.
+                    routeColor:
+                      $ref: '#/components/schemas/RGBColor'
+                    realTime:
+                      $ref: '#/components/schemas/RealtimeData'
+                example:
+                    - id: 803
+                      name: Metro Green Line  (803)
+                      mode: pt_pub_tram
+                      numberOfServices: 485
+                      stops:
+                        - 80314
+                        - 80312
+                        - 80307
+                        - 80305
+                        - 80301
+                    - id: 806
+                      name: Metro Expo Line  (806)
+                      mode: pt_pub_tram
+                      numberOfServices: 562
+                      stops:
+                        - 80137
+                        - 80122
+                        - 80139
+                        - 80136
+                        - 80125
+                        - 80138
+                      routeColor:
+                        - blue: 198
+                        - green: 103
+                        - red: 0
+                      realtime:
+                        - alerts: false
+                        - positions: true
+                        - updates: false
+                    - id: 804
+                      name: Metro Gold Line  (804)
+                      mode: pt_pub_tram
+                      numberOfServices: 120
+                      stops:
+                        - 80404
+                        - 80402
+                        - 80418
+                        - 80426
+                        - 80419
+                        - 80410
+                        - 80427
+                        - 80411
         400:
           description: Bad request, most likely due to issues with the input or non-posible scenarios.
-          schema:
-            $ref: '#/definitions/InputError'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/InputError'
 
   /info/service.json:
     post:
@@ -336,81 +350,85 @@ paths:
       summary: List of services for a particular route.
       description:
         Retrieves detailed information about services for a specified route.
-      parameters:
-        - name: input
-          in: body
-          schema:
-            type: object
-            description: When `full` paramater is false, it will retrieve a list of service trips IDs for the given route and `onlyRealTime` if any. You can also retrieve information for a particular list of services using `serviceTripIDs`.
-            properties:
-              regionID:
-                type: string
-                description: Region id from `/regions`.
-              operatorID:
-                type: string
-                description: TSP ID from `info/operator.json`.
-              routeID:
-                type: string
-                description: Route ID from `info/route.json`.
-              serviceTripIDs:
-                type: array
-                items:
-                  type: string
-                  description: Service trip ID.
-                description: IDs to retrieve information from. In case of any missmatch, it'll return error response.
-              onlyRealTime:
-                type: boolean
-                description: Boolean to filter only services with Real Time support. When true, returned service list will contain only services with Real Time support.
-                default: false
-              full:
-                type: boolean
-                description: Boolean if result should include full information for service/s or just a list with only `id` field in response.
-                default: false
-            required:
-              - region
-              - operatorID
-              - routeID
-            example:
-              regionID: US_CA_LosAngeles
-              operatorID: LACMTA_Rail
-              routeID:  806
-              serviceTripIDs:
-                - 40358027
-              full: true
-      responses:
-        200:
-          description: Successful response
-          schema:
-            type: array
-            items:
+      requestBody:
+        content:
+          application/json:
+            schema:
               type: object
-              description: Service information.
+              description: When `full` paramater is false, it will retrieve a list of service trips IDs for the given route and `onlyRealTime` if any. You can also retrieve information for a particular list of services using `serviceTripIDs`.
               properties:
-                id:
+                regionID:
                   type: string
-                  description: Service Trip ID.
-                stops:
+                  description: Region id from `/regions`.
+                operatorID:
+                  type: string
+                  description: TSP ID from `info/operator.json`.
+                routeID:
+                  type: string
+                  description: Route ID from `info/route.json`.
+                serviceTripIDs:
                   type: array
                   items:
                     type: string
-                    description: Stop code.
-                  description: Sorted stop list for this trip.
-                realTime:
-                  $ref: '#/definitions/RealtimeData'
-            example:
-              - id: 40358027
-                stops:
-                  - 80139
-                  - 80138
-                  - 80137
-                realtime:
-                  - alerts: false
-                  - positions: true
-                  - updates: false
+                    description: Service trip ID.
+                  description: IDs to retrieve information from. In case of any missmatch, it'll return error response.
+                onlyRealTime:
+                  type: boolean
+                  description: Boolean to filter only services with Real Time support. When true, returned service list will contain only services with Real Time support.
+                  default: false
+                full:
+                  type: boolean
+                  description: Boolean if result should include full information for service/s or just a list with only `id` field in response.
+                  default: false
+              required:
+                - region
+                - operatorID
+                - routeID
+              example:
+                regionID: US_CA_LosAngeles
+                operatorID: LACMTA_Rail
+                routeID:  806
+                serviceTripIDs:
+                  - 40358027
+                full: true
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  description: Service information.
+                  properties:
+                    id:
+                      type: string
+                      description: Service Trip ID.
+                    stops:
+                      type: array
+                      items:
+                        type: string
+                        description: Stop code.
+                      description: Sorted stop list for this trip.
+                    realTime:
+                      $ref: '#/components/schemas/RealtimeData'
+                example:
+                  - id: 40358027
+                    stops:
+                      - 80139
+                      - 80138
+                      - 80137
+                    realtime:
+                      - alerts: false
+                      - positions: true
+                      - updates: false
         400:
           description: Bad request, most likely due to issues with the input or non-posible scenarios.
-          schema:
-            $ref: '#/definitions/InputError'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/InputError'
 
   /routing:
     post:
@@ -419,22 +437,25 @@ paths:
       summary: A-to-B trips
       description:
         Calculates door-to-door trips for the specified mode(s).
-      parameters:
-        - name: input
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/RoutingInput'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/parameters/Routing'
 
       responses:
         200:
           description: Successful response. Can include many trips.
-          schema:
-            $ref: '#/definitions/RoutingResponse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/Routing'
         400:
           description: Bad request, most likely due to issues with the input
-          schema:
-            $ref: '#/definitions/InputError'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/InputError'
 
 
   /waypoint:
@@ -449,27 +470,28 @@ paths:
         `time` field set.
 
         Note: If you require alternatives for travelling between one waypoint and the next, use the `/ttp/` endpoint instead.
-      parameters:
-        - name: input
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              waypoints:
-                type: array
-                items:
-                  $ref: '#/definitions/TripInputPattern'
-              config:
-                $ref: '#/definitions/ConfigInput'
-            required:
-              - config
-              - waypoints
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                waypoints:
+                  type: array
+                  items:
+                    $ref: '#/components/parameters/TripPattern'
+                config:
+                  $ref: '#/components/parameters/Config'
+              required:
+                - config
+                - waypoints
       responses:
         200:
           description: Successful response. Only one trip returned.
-          schema:
-            $ref: '#/definitions/RoutingResponse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/Routing'
 
   /trip/{id}:
     get:
@@ -486,16 +508,20 @@ paths:
       parameters:
         - name: DOCUMENTATION_NOT_COMPLETE
           in: query
-          type: boolean
+          schema:
+            type: boolean
       responses:
         200:
           description: Successful response, same format as routing.json, but with only one trip.
-          schema:
-            $ref: '#/definitions/RoutingResponse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/Routing'
     parameters:
       - name: id
         in: path
-        type: string
+        schema:
+          type: string
         required: true
         description: Identifier of trip as returned by previous server call.
 
@@ -514,12 +540,15 @@ paths:
       responses:
         200:
           description: Successful response
-          schema:
-            $ref: '#/definitions/SavedTripUrl'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedTripUrl'
     parameters:
       - name: id
         in: path
-        type: string
+        schema:
+          type: string
         required: true
         description: Identifier of trip as returned by previous server call.
 
@@ -537,12 +566,15 @@ paths:
       responses:
         200:
           description: Successful response, same format as routing.json, but with only one trip.
-          schema:
-            $ref: '#/definitions/RoutingResponse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/Routing'
     parameters:
       - name: id
         in: path
-        type: string
+        schema:
+          type: string
         required: true
         description: Identifier of trip as returned by previous server call.
 
@@ -561,14 +593,16 @@ paths:
       parameters:
         - name: DOCUMENTATION_NOT_COMPLETE
           in: query
-          type: boolean
+          schema:
+            type: boolean
       responses:
         200:
           description: Successful response
     parameters:
       - name: id
         in: path
-        type: string
+        schema:
+          type: string
         required: true
         description: Identifier of trip as returned by previous server call.
 
@@ -583,33 +617,38 @@ paths:
       parameters:
         - name: q
           in: query
-          type: string
+          schema:
+            type: string
           description: Search term
           required: true
         - name: near
           in: query
-          type: string
+          schema:
+            type: string
           description: Nearby coordinate as `(lat,lng)` string.
           required: true
         - name: a
           in: query
-          type: boolean
+          schema:
+            type: boolean
+            default: false
           description: Set to `true` when results are used for autocompletion.  Note that not all POI sources may be used when this is enabled.
-          default: false
       responses:
         200:
           description: Successful response
-          schema:
-            type: object
-            properties:
-              query:
-                type: string
-                description: Search term as provided in input
-              choices:
-                type: array
-                description: Matching results. Might also be of type `StopLocation`.
-                items:
-                  $ref: '#/definitions/Location'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  query:
+                    type: string
+                    description: Search term as provided in input
+                  choices:
+                    type: array
+                    description: Matching results. Might also be of type `StopLocation`.
+                    items:
+                      $ref: '#/components/schemas/Location'
 
   /locations.json:
     get:
@@ -621,34 +660,42 @@ paths:
       parameters:
         - name: lat
           in: query
-          type: number
+          schema:
+            type: number
           description: Latitude
           required: true
         - name: lng
           in: query
-          type: number
+          schema:
+            type: number
           description: Longitude
           required: true
         - name: radius
           in: query
-          type: number
+          schema:
+            type: number
           description: Radius in metres
           required: true
         - name: modes
           in: query
-          type: array
+          schema:
+            type: array
+            items:
+              type: string
           description: Mode identifiers for which to include POIs.
-          items:
-            type: string
       responses:
         200:
           description: Successful response
-          schema:
-            $ref: '#/definitions/GroupedLocations'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupedLocations'
         400:
           description: Bad request, most likely due to issues with the input
-          schema:
-            $ref: '#/definitions/InputError'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/InputError'
 
     post:
       tags:
@@ -661,64 +708,68 @@ paths:
       externalDocs:
         description: Locations, cell IDs and hash codes
         url: "https://developer.tripgo.com/faq/#locations-cell-ids-and-hash-codes"
-      parameters:
-        - name: input
-          in: body
-          schema:
-            type: object
-            properties:
-              regionID:
-                type: string
-                description: Region code from `/regions` for which to fetch locations from.
-              level:
-                type: integer
-                description: 1 to get major locations that should be displayed when zoomed out. 2 to get minor locations that should be displayed when zoomed in.
-                # minValue: 1
-                # maxValue: 2
-                default: 1
-              cellIDs:
-                type: array
-                description: When `level` isn't 1, either this or `cellIDHashCodes` is required.
-                items:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                regionID:
                   type: string
-              cellIDHashCodes:
-                type: object
-                description: When `level` isn't 1, either this or `cellIDs` is required.
-                properties:
-                  $cellID:
-                    type: integer
-                    description: Key is cell ID. Hash code should be as returned by previous call where you likely used `cellIDs`.
-              cellsPerDegree:
-                type: integer
-                default: 75
-              modes:
-                type: array
-                description: Mode identifiers for which to include POIs.
-                default:
-                  - pt_pub
-                items:
-                  type: string
-            required:
-              - region
-            example:
-              regionID: AU_NSW_Sydney
-              level: 2
-              cellIDs:
-                - -2540#11340
-                - -2540#11341
-                - -2540#11342
-                - -2541#11340
-                - -2541#11341
-                - -2541#11342
+                  description: Region code from `/regions` for which to fetch locations from.
+                level:
+                  type: integer
+                  description: 1 to get major locations that should be displayed when zoomed out. 2 to get minor locations that should be displayed when zoomed in.
+                  # minValue: 1
+                  # maxValue: 2
+                  default: 1
+                cellIDs:
+                  type: array
+                  description: When `level` isn't 1, either this or `cellIDHashCodes` is required.
+                  items:
+                    type: string
+                cellIDHashCodes:
+                  type: object
+                  description: When `level` isn't 1, either this or `cellIDs` is required.
+                  properties:
+                    $cellID:
+                      type: integer
+                      description: Key is cell ID. Hash code should be as returned by previous call where you likely used `cellIDs`.
+                cellsPerDegree:
+                  type: integer
+                  default: 75
+                modes:
+                  type: array
+                  description: Mode identifiers for which to include POIs.
+                  default:
+                    - pt_pub
+                  items:
+                    type: string
+              required:
+                - region
+              example:
+                regionID: AU_NSW_Sydney
+                level: 2
+                cellIDs:
+                  - -2540#11340
+                  - -2540#11341
+                  - -2540#11342
+                  - -2541#11340
+                  - -2541#11341
+                  - -2541#11342
       responses:
         200:
           description: Successful response
-          schema:
-            $ref: '#/definitions/GroupedLocations'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupedLocations'
         400:
           description: Bad request, most likely due to issues with the input
-          schema:
-            $ref: '#/definitions/InputError'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/InputError'
 
   /locationInfo.json:
     get:
@@ -730,21 +781,26 @@ paths:
       parameters:
         - name: lat
           in: query
-          type: number
+          schema:
+            type: number
           description: Latitude
         - name: lng
           in: query
-          type: number
+          schema:
+            type: number
           description: Longitude
         - name: identifier
           in: query
-          type: string
+          schema:
+            type: string
           description: Unique identifier for this location, required if lat/lng are not provided
       responses:
         200:
           description: Successful response
-          schema:
-            $ref: '#/definitions/LocationInfo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationInfo'
 
   /departures.json:
     post:
@@ -757,74 +813,76 @@ paths:
         If `disembarkationStops` is provided, then the returned timetable covers only services between any of the embarkation stops and any of the disembarkation stops. If the region of the embarkation stops and the region of the disembarkations stops is not the same, then you must specify the `disembarkationRegionID` of the `disembarkationStops`.
 
         Note that the the stop codes in the embarkation stops might *not* match the stop codes provided in the input. This happens if the input specified the stop code of a "parent" station (e.g., a major train station) but all the departures are from one of the parent station's "children" (e.g., a platform of that train station). If that's the case, then the `parentInfo` array will provide additional information on the parent station and its children.
-      parameters:
-        - name: input
-          in: body
-          schema:
-            type: object
-            properties:
-              embarkationRegionID:
-                type: string
-                description: Region code from `/regions` for which to fetch the timetable.
-              embarkationStops:
-                type: array
-                items:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                embarkationRegionID:
                   type: string
-                  description: Code of a StopLocation as previously returned by `locations.json`. Currently only a single parent stop is allowed in that list.
-              disembarkationRegionID:
-                type: string
-                description: Region code from `/regions` for the `disembarkationStops` when the region of `embarkationStops` and `disembarkationStops` does not match.
-              disembarkationStops:
-                type: array
-                items:
+                  description: Region code from `/regions` for which to fetch the timetable.
+                embarkationStops:
+                  type: array
+                  items:
+                    type: string
+                    description: Code of a StopLocation as previously returned by `locations.json`. Currently only a single parent stop is allowed in that list.
+                disembarkationRegionID:
                   type: string
-                  description: Code of a StopLocation as previously returned by `locations.json`
-              timeStamp:
-                type: string
-                format: date-time
-                description: Earlest time to include in timetable, in ISO8601 format. Default value is current time.
-              limit:
-                type: integer
-                description: Number of services to include in timetable.
-                default: 50
-            required:
-              - region
-              - embarkationStops
-            example:
-              embarkationRegionID: AU_NSW_Sydney
-              embarkationStops:
-                - "2035143"
+                  description: Region code from `/regions` for the `disembarkationStops` when the region of `embarkationStops` and `disembarkationStops` does not match.
+                disembarkationStops:
+                  type: array
+                  items:
+                    type: string
+                    description: Code of a StopLocation as previously returned by `locations.json`
+                timeStamp:
+                  type: string
+                  format: date-time
+                  description: Earlest time to include in timetable, in ISO8601 format. Default value is current time.
+                limit:
+                  type: integer
+                  description: Number of services to include in timetable.
+                  default: 50
+              required:
+                - region
+                - embarkationStops
+              example:
+                embarkationRegionID: AU_NSW_Sydney
+                embarkationStops:
+                  - "2035143"
       responses:
         200:
           description: Successful response
-          schema:
-            type: object
-            properties:
-              embarkationStops:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    stopCode:
-                      type: string
-                    services:
-                      type: array
-                      items:
-                        $ref: '#/definitions/ServiceDeparture'
-                    wheelchairAccessible:
-                      type: boolean
-                      description: Is this stop wheelchair accessible? Missing when unknown.
-              parentInfo:
-                $ref: '#/definitions/StopLocationParent'
-                # type: array
-                # items:
-                #   $ref: '#/definitions/StopLocationParent'
-              alerts:
-                type: array
-                items:
-                  $ref: '#/definitions/RealTimeAlert'
-            required:
-              - embarkationStops
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  embarkationStops:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        stopCode:
+                          type: string
+                        services:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/ServiceDeparture'
+                        wheelchairAccessible:
+                          type: boolean
+                          description: Is this stop wheelchair accessible? Missing when unknown.
+                  parentInfo:
+                    $ref: '#/components/schemas/StopLocationParent'
+                    # type: array
+                    # items:
+                    #   $ref: '#/components/schemas/StopLocationParent'
+                  alerts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RealTimeAlert'
+                required:
+                  - embarkationStops
 
   /arrivals.json:
     post:
@@ -836,7 +894,8 @@ paths:
       parameters:
         - name: DOCUMENTATION_NOT_COMPLETE
           in: query
-          type: boolean
+          schema:
+            type: boolean
       responses:
         200:
           description: Successful response
@@ -846,88 +905,90 @@ paths:
       tags:
         - Public Transport
       summary: Real-time information for a transit service
-      parameters:
-        - name: input
-          in: body
-          schema:
-            type: object
-            properties:
-              regionID:
-                type: string
-                description: Region code from `/regions` for which to fetch the real-time information.
-              services:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    operator:
-                      type: string
-                    serviceTripID:
-                      type: string
-                    startStopCode:
-                      type: string
-                    startTime:
-                      type: string
-                      format: date-time
-                      description: Departure time at `startStopCode` in ISO8601 format. The parameter is optional, but highly recommended. If you don't get real-time data, add this parameter.
-                    endStopCode:
-                      type: string
-                  required:
-                    - operator
-                    - serviceTripID
-                    - startStopCode
-            required:
-              - region
-              - services
-            example:
-              regionID: AU_NSW_Sydney
-              services:
-                - operator: Sydney Buses
-                  serviceTripID: "76641565_20160307_11954"
-                  startStopCode: "2035143"
-                - operator: Sydney Buses
-                  serviceTripID: "76640498_20160307_11954"
-                  startStopCode: "2035143"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                regionID:
+                  type: string
+                  description: Region code from `/regions` for which to fetch the real-time information.
+                services:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      operator:
+                        type: string
+                      serviceTripID:
+                        type: string
+                      startStopCode:
+                        type: string
+                      startTime:
+                        type: string
+                        format: date-time
+                        description: Departure time at `startStopCode` in ISO8601 format. The parameter is optional, but highly recommended. If you don't get real-time data, add this parameter.
+                      endStopCode:
+                        type: string
+                    required:
+                      - operator
+                      - serviceTripID
+                      - startStopCode
+              required:
+                - region
+                - services
+              example:
+                regionID: AU_NSW_Sydney
+                services:
+                  - operator: Sydney Buses
+                    serviceTripID: "76641565_20160307_11954"
+                    startStopCode: "2035143"
+                  - operator: Sydney Buses
+                    serviceTripID: "76640498_20160307_11954"
+                    startStopCode: "2035143"
       responses:
         200:
           description: Successful response
-          schema:
-            type: object
-            properties:
-              services:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    serviceTripID:
-                      type: string
-                    startStopCode:
-                      type: string
-                    startTime:
-                      type: string
-                      format: date-time
-                      description: Predicted departure time based on real-time information in ISO8601 format.
-                    lastUpdate:
-                      type: string
-                      format: date-time
-                      description: Time the departure/arrival time prediction was made in ISO8601 format.
-                    realtimeVehicle:
-                      # description: The vehicle for this specific service.
-                      $ref: '#/definitions/RealTimeVehicle'
-                    realtimeAlternativeVehicle:
-                      description: Alternative vehicles for the same route, but not necessarily, this specific service.
-                      type: array
-                      items:
-                        $ref: '#/definitions/RealTimeVehicle'
-                    alerts:
-                      description: Service alerts / disruption information that affect this service.
-                      type: array
-                      items:
-                        $ref: '#/definitions/RealTimeAlert'
-                  required:
-                    - serviceTripID
-            required:
-              - services
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  services:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        serviceTripID:
+                          type: string
+                        startStopCode:
+                          type: string
+                        startTime:
+                          type: string
+                          format: date-time
+                          description: Predicted departure time based on real-time information in ISO8601 format.
+                        lastUpdate:
+                          type: string
+                          format: date-time
+                          description: Time the departure/arrival time prediction was made in ISO8601 format.
+                        realtimeVehicle:
+                          # description: The vehicle for this specific service.
+                          $ref: '#/components/schemas/RealTimeVehicle'
+                        realtimeAlternativeVehicle:
+                          description: Alternative vehicles for the same route, but not necessarily, this specific service.
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/RealTimeVehicle'
+                        alerts:
+                          description: Service alerts / disruption information that affect this service.
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/RealTimeAlert'
+                      required:
+                        - serviceTripID
+                required:
+                  - services
 
   /service.json:
     get:
@@ -939,76 +1000,85 @@ paths:
       parameters:
         - name: region
           in: query
-          type: string
+          schema:
+            type: string
           description: Region identifier as returned by `/regions`.
           required: true
         - name: serviceTripID
           in: query
-          type: string
+          schema:
+            type: string
           description: Identifier of service as returned by other servlets.
           required: true
         - name: operator
           in: query
-          type: string
+          schema:
+            type: string
           description: Operator of service as returned other servlets. Not required but recommended as a `serviceTripID` might match multiple operators; in that case and when `operator` is not provide, a service details for a random operator will be returned.
         - name: embarkationDate
           in: query
-          type: string
-          format: date-time
-          description: Departure time of service in ISO8601 format.
+          schema:
+            type: string
+            format: date-time
           required: true
+          description: Departure time of service in ISO8601 format.
         - name: encode
           in: query
-          type: boolean
+          schema:
+            type: boolean
+            default: false
           description: Set to `true` to receive waypoints as encoded polyline.
-          default: false
         - name: startStopCode
           in: query
-          type: string
+          schema:
+            type: string
           description: Stop code of embarkation. First stop to be considered "travelled".
           required: false
         - name: endStopCode
           in: query
-          type: string
+          schema:
+            type: string
           description: Stop code of disembarkation. Last stop to be considered "travelled".
           required: false
       responses:
         200:
           description: Successful response
-          schema:
-            type: object
-            properties:
-              shapes:
-                type: array
-                items:
-                  $ref: '#/definitions/ServiceShape'
-              realTimeStatus:
-                type: string
-                description: Indicator for whether real-time information is available for this service. Note that even if this says the service is real-time, this does not mean the `startTime` is real-time.
-                enum:
-                  - IS_REAL_TIME
-                  - CAPABLE
-                  - INCAPABLE
-              realtimeVehicle:
-                # description: The vehicle for this specific service.
-                $ref: '#/definitions/RealTimeVehicle'
-              realtimeAlternativeVehicle:
-                description: Alternative vehicles for the same route, but not necessarily, this specific service.
-                type: array
-                items:
-                  $ref: '#/definitions/RealTimeVehicle'
-              alerts:
-                description: Service alerts / disruption information that affect this service.
-                type: array
-                items:
-                  $ref: '#/definitions/RealTimeAlert'
-              bicycleAccessible:
-                type: boolean
-                description: Can you take a bicycle on this service? Missing when unknown.
-              wheelchairAccessible:
-                type: boolean
-                description: |
-                  If this service is wheelchair accessible or not. If this field is missing, this does not mean that it is not accessible, but rather that it is unknown whether it is accessible. Only if the value is present and is `false`, does it mean that the service is not wheelchair accessible.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shapes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceShape'
+                  realTimeStatus:
+                    type: string
+                    description: Indicator for whether real-time information is available for this service. Note that even if this says the service is real-time, this does not mean the `startTime` is real-time.
+                    enum:
+                      - IS_REAL_TIME
+                      - CAPABLE
+                      - INCAPABLE
+                  realtimeVehicle:
+                    # description: The vehicle for this specific service.
+                    $ref: '#/components/schemas/RealTimeVehicle'
+                  realtimeAlternativeVehicle:
+                    description: Alternative vehicles for the same route, but not necessarily, this specific service.
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RealTimeVehicle'
+                  alerts:
+                    description: Service alerts / disruption information that affect this service.
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RealTimeAlert'
+                  bicycleAccessible:
+                    type: boolean
+                    description: Can you take a bicycle on this service? Missing when unknown.
+                  wheelchairAccessible:
+                    type: boolean
+                    description: |
+                      If this service is wheelchair accessible or not. If this field is missing, this does not mean that it is not accessible, but rather that it is unknown whether it is accessible. Only if the value is present and is `false`, does it mean that the service is not wheelchair accessible.
 
   /alerts/transit.json:
     get:
@@ -1018,1476 +1088,994 @@ paths:
       parameters:
         - name: region
           in: query
-          type: string
+          schema:
+            type: string
           required: true
       responses:
         200:
           description: Successful response
-          schema:
-            type: object
-            properties:
-              alerts:
-                $ref: '#/definitions/AlertsInfo'
-            required:
-              - alerts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alerts:
+                    $ref: '#/components/schemas/AlertsInfo'
+                required:
+                  - alerts
         400:
           description: Bad request due to bad input data
 
-definitions:
+components:
 
-  RegionsResponse:
-    properties:
-      hashCode:
-        type: integer
-        description: Hash code of the content of the response. You can pass this as an input parameter, if you only want to get content in the response if the data has changed.
-      regions:
-        type: array
-        minItems: 1
-        items:
-          $ref: '#/definitions/Region'
-      modes:
-        type: object
-        properties:
-          $modeIdentifier:
-            description: This is a map/dictionary with multiple items of this type. Each key is a mode identifier. See https://developer.tripgo.com/faq/#mode-identifiers.
-            $ref: '#/definitions/ModeIdentifier'
+  parameters:
 
-  RegionInfoResponse:
-    properties:
-      regions:
-        type: array
-        minItems: 1
-        items:
-          $ref: '#/definitions/RegionDetail'
-
-  RoutingInput:
-    properties:
-      config:
-        $ref: '#/definitions/ConfigInput'
-      from:
-        type: string
-        description: Origin coordinate as `(lat,lng)"address"` string (the `"address"` part is optional).
-      to:
-        type: string
-        description: Destination coordinate as `(lat,lng)"address"` string (the `"address"` part is optional).
-      departAfter:
-        type: string
-        format: date-time
-        description: Departure time in ISO8601 format. Either this or `arriveBefore` need to be specified. You can also specify both to find trips that minimise duration within that window.
-      arriveBefore:
-        type: string
-        format: date-time
-        description: Arrival time in ISO8601 format. Either this or `departAfter` need to be specified. You can also specify both to find trips that minimise duration within that window.
-      modes:
-        type: array
-        items:
-          type: string
-        description:
-          Modes for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_tax_FLITWAYS` exactly as returned by `/regions`. If multiple modes are specified only trips which mix at least two of these modes are returned. [Details of single-modal and multi-modal queries are on our developer site](https://developer.tripgo.com/faq/#single-modal-vs-multi-modal-routing).
-      avoidModes:
-        type: array
-        items:
-          type: string
-        description:
-          Public transport modes to avoid. Identifier strings like `pt_pub_bus` exactly as returend by `regionInfo.json`. If multiple modes are specified, all will be avoided. Results can still use these modes if no other public transport mode is suitable.
-      avoidStops:
-        type: array
-        items:
-          type: string
-        description:
-          Public stops to avoid. Stop codes usually coming from the `excludedStops` field in `alerts` field. If a stop code corresponds to a "parent" station, it will avoid all "children" stops.
-      includeStops:
-        type: boolean
-        description: Boolean if segment templates for public transport should include the list of all stops along the way, including *relative* times (i.e., seconds since start of the segment)
-        default: false
-      2wirc:
-        type: boolean
-        description: Boolean to determine whether two-way-hire vehicles, such as pod-based car-share, should automatically add the cost of returning the vehicle to its pick-up location. Set to false if the cost of the trip should only include the cost that's attributed to this trip and ignore the unavoidable additional cost for returning the vehicle to its pick-up location.
-        default: true
-      fb:
-        type: boolean
-        description: _f_olding _b_icycle, boolean to determine whether the bicycle mode should be treated as a folding/portable bicycle. When this is set to `true`, the bicycle will be taken on any public transport mode, and will be taken all the way to the destination, rather than locking it up along the way. (Only applies if `modes` includes `cy_bic`.)
-        default: false
-    required:
-      - from
-      - to
-      - modes
-
-  RoutingResponse:
-    properties:
-      groups:
-        type: array
-        items:
-          $ref: '#/definitions/TripGroup'
-      segmentTemplates:
-        type: array
-        items:
-          $ref: '#/definitions/SegmentTemplate'
-      regionIDs:
-        type: array
-        items:
-          type: string
-      alerts:
-        type: array
-        items:
-          $ref: '#/definitions/RealTimeAlert'
-    required:
-      - groups
-      - segmentTempaltes
-      - regionIDs
-    # example:
-    #   regionIDs:
-    #     - DE_BV_Nuremberg
-
-  ConfigInput:
-    type: object
-    properties:
-      tt:
-        type: integer
-        description: Preferred minimum transfer time in minutes.
-        default: 3
-        minimum: 0
-        multipleOf: 1
-      ws:
-        type: integer
-        description: Walking speed. 0 slow (2.5 km/h), 1 medium (4 km/h), 2 fast (4.5 km/h).
-        default: 1
-        minimum: 0
-        maximum: 2
-        multipleOf: 1
-      cs:
-        type: integer
-        description: Cycling speed. 0 slow (12 km/h), 1 medium (18 km/h), 2 fast (25 km/h).
-        default: 1
-        minimum: 0
-        maximum: 2
-        multipleOf: 1
-      conc:
-        type: boolean
-        description: If concession pricing should be use for public transport
-        default: false
-      wheelchair:
-        type: boolean
-        description: If user is on wheelchair
-        default: false
-      wp:
-        type: string
-        description:
-          String with `(%f,%f,%f,%f)` format specifying the user's weighting profile. In order, the weights represent price, environmental impact, duration, and convenience. Each value should be between 0.1 and 2.0. 0.1 means the related cost is unimportant and 2.0 means it's very important to the user. This impacts both the routing results and each trip's `weightedCost` value.
-        default: (1, 1, 1, 1)
-
-  TripInputPattern:
-    properties:
-      lat:
-        type: number
-        description: Latitude of the waypoint
-      lng:
-        type: number
-        description: Longitude of the waypoint
-      mode:
-        type: string
-        description: Mode identifier for the transport mode to use starting at this location. Mode identifier should be as returned by /regions.
-      time:
-        type: string
-        format: date-time
-        description: Time to start at this waypoint in ISO8601 format.
-    required:
-      - lat
-      - lng
-      - mode
-
-  BookingInfo:
-    properties:
-      title:
-        type: string
-        description: Localized title for booking button.
-      externalActions:
-        type: array
-        items:
-          type: string
-          description: URL or Identifiers such as `lyft` for app-to-app integration.
-      url:
-        type: string
-        description: URL for Form-Based booking flow
-      quickBookingsUrl:
-        type: string
-        description: URL for quick booking flow
-      productID:
-        type: string
-        description: ID of the product in externalActions (currently only used for Uber and Lyft)
-      confirmation:
-        $ref: 'https://developer.tripgo.com/specs/modules/booking.definitions.yaml#/LocalizedBookingConfirmationInfo'
-    required:
-      - title
-
-  RGBColor:
-    properties:
-      red:
-        type: integer
-        minimum: 0
-        maximum: 255
-      blue:
-        type: integer
-        minimum: 0
-        maximum: 255
-      green:
-        type: integer
-        minimum: 0
-        maximum: 255
-    required:
-      - red
-      - blue
-      - green
-
-  Coordinate:
-    properties:
-      lat:
-        type: number
-        description: Latitude
-      lng:
-        type: number
-        description: Longitude
-    required:
-      - lat
-      - lng
-
-  Location:
-    allOf:
-    - $ref: '#/definitions/Coordinate'
-    - type: object
+    Routing:
       properties:
-        timezone:
+        config:
+          $ref: '#/components/parameters/Config'
+        from:
           type: string
-          description: Timezone identifier
-        address:
+          description: Origin coordinate as `(lat,lng)"address"` string (the `"address"` part is optional).
+        to:
           type: string
-      required:
-        - timezone
-
-  StopLocation:
-    allOf:
-    - $ref: '#/definitions/Location'
-    - type: object
-      properties:
-        code:
+          description: Destination coordinate as `(lat,lng)"address"` string (the `"address"` part is optional).
+        departAfter:
           type: string
-          description: Internal identifier for the stop
-        name:
+          format: date-time
+          description: Departure time in ISO8601 format. Either this or `arriveBefore` need to be specified. You can also specify both to find trips that minimise duration within that window.
+        arriveBefore:
           type: string
-          description: Official name of the stop
-        popularity:
-          type: integer
-          description: Number for popularity of stop defined by number of services and their types.
-        modeInfo:
-          $ref: '#/definitions/ModeInfo'
-        wheelchairAccessible:
-          type: boolean
-          description: Is this stop wheelchair accessible? Missing when unknown.
-      required:
-        - code
-        - name
-        - popularity
-        - modeInfo
-
-  StopLocationParent:
-    allOf:
-    - $ref: '#/definitions/StopLocation'
-    - type: object
-      properties:
-        children:
+          format: date-time
+          description: Arrival time in ISO8601 format. Either this or `departAfter` need to be specified. You can also specify both to find trips that minimise duration within that window.
+        modes:
           type: array
           items:
-            allOf:
-              - $ref: '#/definitions/StopLocation'
-              - type: object
-                properties:
-                  childName:
-                    type: string
-                    description: Platform number
-
-  BikePodInfo:
-    properties:
-      identifier:
-        type: string
-      operator:
-        $ref: '#/definitions/CompanyInfo'
-      inService:
-        description: Whether this pod is currently in service (e.g., some might be closed for maintenance or during winter months)
-        type: boolean
-      totalSpaces:
-        description: Static information of total spaces
-        type: integer
-      availableBikes:
-        description: |
-          Real-time information of available bikes.
-
-          Note that this can be *more* than the total spaces for providers that have free-floating bicycles that are left at a station even though there's no bike dock.
-        type: integer
-      lastUpdated:
-        type: string
-        format: date-time
-        description: Timestamp `availableBikes` got recorded in ISO8601 format
-      source:
-        $ref: '#/definitions/DataSourceAttribution'
-    required:
-      - identifier
-      - operator
-
-  BikePodLocation:
-    allOf:
-    - $ref: '#/definitions/Location'
-    - type: object
-      properties:
-        bikePod:
-          $ref: '#/definitions/BikePodInfo'
-        modeInfo:
-          $ref: '#/definitions/ModeInfo'
+            type: string
+          description:
+            Modes for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_tax_FLITWAYS` exactly as returned by `/regions`. If multiple modes are specified only trips which mix at least two of these modes are returned. [Details of single-modal and multi-modal queries are on our developer site](https://developer.tripgo.com/faq/#single-modal-vs-multi-modal-routing).
+        avoidModes:
+          type: array
+          items:
+            type: string
+          description:
+            Public transport modes to avoid. Identifier strings like `pt_pub_bus` exactly as returend by `regionInfo.json`. If multiple modes are specified, all will be avoided. Results can still use these modes if no other public transport mode is suitable.
+        avoidStops:
+          type: array
+          items:
+            type: string
+          description:
+            Public stops to avoid. Stop codes usually coming from the `excludedStops` field in `alerts` field. If a stop code corresponds to a "parent" station, it will avoid all "children" stops.
+        includeStops:
+          type: boolean
+          description: Boolean if segment templates for public transport should include the list of all stops along the way, including *relative* times (i.e., seconds since start of the segment)
+          default: false
+        2wirc:
+          type: boolean
+          description: Boolean to determine whether two-way-hire vehicles, such as pod-based car-share, should automatically add the cost of returning the vehicle to its pick-up location. Set to false if the cost of the trip should only include the cost that's attributed to this trip and ignore the unavoidable additional cost for returning the vehicle to its pick-up location.
+          default: true
+        fb:
+          type: boolean
+          description: _f_olding _b_icycle, boolean to determine whether the bicycle mode should be treated as a folding/portable bicycle. When this is set to `true`, the bicycle will be taken on any public transport mode, and will be taken all the way to the destination, rather than locking it up along the way. (Only applies if `modes` includes `cy_bic`.)
+          default: false
       required:
-        - bikePod
-        - modeInfo
+        - from
+        - to
+        - modes
 
-  CarParkInfo:
-    properties:
-      identifier:
-        type: string
-      name:
-        type: string
-      address:
-        type: string
-      operator:
-        $ref: '#/definitions/CompanyInfo'
-      totalSpaces:
-        description: Static information of total spaces
-        type: integer
-      availableSpaces:
-        description: Real-time information of available spaces
-        type: integer
-      lastUpdated:
-        type: string
-        format: date-time
-        description: Timestamp `availableSpaces` got recorded in ISO8601 format
-      onStreetParking:
-        type: boolean
-      encodedParkingArea:
-        type: string
-        description: |
-          Encoded polygon (or polyline) of parking area. Typically a polyline for on-street parking and a polygon for off-street parking.
-          Encoded using Google's Encoded Polyline Algorithm. See https://developers.google.com/maps/documentation/utilities/polylinealgorithm.
-      openingHours:
-        type: string
-        description: Opening hours
-        externalDocs:
-          url: http://schema.org/openingHours
-        $ref: '#/definitions/OpeningHours'
-      pricingTable:
-        type: array
-        items:
-          $ref: '#/definitions/PricingTable'
-      restrictions:
-        $ref: '#/definitions/Restrictions'
-        type: object
-      entrances:
-        type: array
-        items:
-          $ref: '#/definitions/Entrance'
-      source:
-        $ref: '#/definitions/DataSourceAttribution'
-      info:
-        type: string
-        description: Additional information about this car park.
-    required:
-      - identifier
-      - name
-      - address
-
-  CarParkLocation:
-    allOf:
-    - $ref: '#/definitions/Location'
-    - type: object
+    Config:
+      type: object
       properties:
-        carPark:
-          $ref: '#/definitions/CarParkInfo'
-        modeInfo:
-          $ref: '#/definitions/ModeInfo'
+        tt:
+          type: integer
+          description: Preferred minimum transfer time in minutes.
+          default: 3
+          minimum: 0
+          multipleOf: 1
+        ws:
+          type: integer
+          description: Walking speed. 0 slow (2.5 km/h), 1 medium (4 km/h), 2 fast (4.5 km/h).
+          default: 1
+          minimum: 0
+          maximum: 2
+          multipleOf: 1
+        cs:
+          type: integer
+          description: Cycling speed. 0 slow (12 km/h), 1 medium (18 km/h), 2 fast (25 km/h).
+          default: 1
+          minimum: 0
+          maximum: 2
+          multipleOf: 1
+        conc:
+          type: boolean
+          description: If concession pricing should be use for public transport
+          default: false
+        wheelchair:
+          type: boolean
+          description: If user is on wheelchair
+          default: false
+        wp:
+          type: string
+          description:
+            String with `(%f,%f,%f,%f)` format specifying the user's weighting profile. In order, the weights represent price, environmental impact, duration, and convenience. Each value should be between 0.1 and 2.0. 0.1 means the related cost is unimportant and 2.0 means it's very important to the user. This impacts both the routing results and each trip's `weightedCost` value.
+          default: (1, 1, 1, 1)
+
+    TripPattern:
+      properties:
+        lat:
+          type: number
+          description: Latitude of the waypoint
+        lng:
+          type: number
+          description: Longitude of the waypoint
+        mode:
+          type: string
+          description: Mode identifier for the transport mode to use starting at this location. Mode identifier should be as returned by /regions.
+        time:
+          type: string
+          format: date-time
+          description: Time to start at this waypoint in ISO8601 format.
       required:
-        - carPark
-        - modeInfo
+        - lat
+        - lng
+        - mode
 
-  NearbyCarParkLocation:
-    allOf:
-    - $ref: '#/definitions/CarParkLocation'
-    - type: object
+  responses:
+
+    Regions:
       properties:
-        additionalWalking:
+        hashCode:
+          type: integer
+          description: Hash code of the content of the response. You can pass this as an input parameter, if you only want to get content in the response if the data has changed.
+        regions:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Region'
+        modes:
           type: object
           properties:
-            duration:
-              type: integer
-              description: Duration in seconds for walking from car park to destination of segment
-            metres:
-              type: integer
-              description: Distance in metres for walking from car park to destination of segment
-            encodedPath:
-              type: string
-              description: |
-                Encoded polyline for walking from car park to destination of segment.
-                Encoded using Google's Encoded Polyline Algorithm. See https://developers.google.com/maps/documentation/utilities/polylinealgorithm.
-          required:
-            - duration
-            - metres
-            - encodedPath
+            $modeIdentifier:
+              description: This is a map/dictionary with multiple items of this type. Each key is a mode identifier. See https://developer.tripgo.com/faq/#mode-identifiers.
+              $ref: '#/components/schemas/ModeIdentifier'
 
-  CarPodInfo:
-    properties:
-      identifier:
-        type: string
-      operator:
-        $ref: '#/definitions/CompanyInfo'
-      vehicles:
-        type: array
-        items:
-          type: object
-          properties:
-            name:
-              type: string
-            description:
-              description: Long-form description of the vehicle
-              type: string
-            licensePlate:
-              type: string
-            engineType:
-              type: string
-            fuelType:
-              type: string
-            fuelLevel:
-              description: Pcercentage how full the vehicle is
-              type: integer
-              # minValue: 0
-              # maxValue: 100
-              # multipleOf: 1
-            pricingTable:
-              $ref: '#/definitions/PricingTable'
-    required:
-      - identifier
-      - operator
-      - vehicles
-
-  CarPodLocation:
-    allOf:
-    - $ref: '#/definitions/Location'
-    - type: object
+    RegionInfo:
       properties:
-        carPod:
-          $ref: '#/definitions/CarPodInfo'
-        modeInfo:
-          $ref: '#/definitions/ModeInfo'
+        regions:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/RegionDetail'
+
+    Routing:
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/TripGroup'
+        segmentTemplates:
+          type: array
+          items:
+            $ref: '#/components/schemas/SegmentTemplate'
+        regionIDs:
+          type: array
+          items:
+            type: string
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/RealTimeAlert'
       required:
-        - carPod
-        - modeInfo
+        - groups
+        - segmentTempaltes
+        - regionIDs
+      # example:
+      #   regionIDs:
+      #   - DE_BV_Nuremberg
 
-  CarRentalInfo:
-    properties:
-      identifier:
-        type: string
-      company:
-        $ref: '#/definitions/CompanyInfo'
-      openingHours:
-        $ref: '#/definitions/OpeningHours'
-      source:
-        $ref: '#/definitions/DataSourceAttribution'
-    required:
-      - identifier
-      - company
-
-  CarRentalLocation:
-    allOf:
-    - $ref: '#/definitions/Location'
-    - type: object
+    InputError:
       properties:
-        carRental:
-          $ref: '#/definitions/CarRentalInfo'
-        modeInfo:
-          $ref: '#/definitions/ModeInfo'
-      required:
-        - carRental
-        - modeInfo
-
-  CompanyInfo:
-    properties:
-      name:
-        type: string
-      phone:
-        type: string
-      website:
-        type: string
-      remoteIcon:
-        type: string
-      remoteDarkIcon:
-        type: string
-      color:
-        $ref: '#/definitions/RGBColor'
-    required:
-      - name
-
-  DataSourceAttribution:
-    description:
-      Information on how data should get attributed. When present, this needs to get displayed on relevant screens / views.
-    properties:
-      provider:
-        $ref: '#/definitions/CompanyInfo'
-      disclaimer:
-        type: string
-        description: Longer disclaimer that should be displayed for this provider
-    required:
-      - provider
-
-  ArrayOfDataSourceAttribution:
-    type: array
-    items:
-      $ref: '#/definitions/DataSourceAttribution'
-
-  LocationInfo:
-    allOf:
-    - $ref: '#/definitions/Coordinate'
-    - type: object
-      properties:
-        details:
-          properties:
-            w3w:
-              type: string
-            w3wInfoURL:
-              type: string
-        stop:
-          $ref: '#/definitions/StopLocation'
-        bikePod:
-          $ref: '#/definitions/BikePodInfo'
-        carPark:
-          $ref: '#/definitions/CarParkInfo'
-      #   carPod:
-      #     $ref: '#/definitions/CarPodInfo'
-        carRental:
-          $ref: '#/definitions/CarRentalInfo'
-
-  GroupedLocations:
-    type: object
-    properties:
-      groups:
-        type: array
-        items:
-          type: object
-          properties:
-            key:
-              type: string
-              description: cellID
-            hashCode:
-              type: integer
-              description: Hash code of content
-            bikePods:
-              type: array
-              items:
-                $ref: '#/definitions/BikePodLocation'
-            carParks:
-               type: array
-               items:
-                 $ref: '#/definitions/CarParkLocation'
-            # carPods:
-            #   type: array
-            #   items:
-            #     $ref: '#/definitions/CarPodLocation'
-            carRentals:
-              type: array
-              items:
-                $ref: '#/definitions/CarRentalLocation'
-            stops:
-              type: array
-              items:
-                $ref: '#/definitions/StopLocation'
-          required:
-            - key
-            - hashCode
-
-  ModeInfo:
-    properties:
-      identifier:
-        description: |
-          Typically a mode-identifier, but it can be more specific that the one from the query, e.g., `pt_pub_bus` even though the query requested `pt_pub`. Missing for stationary segments.
-        type: string
-      alt:
-        description: Textual alternative to icon
-        type: string
-      localIcon:
-        description: Part of icon file name that should be shipped with app.
-        type: string
-      remoteIcon:
-        description: Part of icon file name that can be fetched from server.
-        type: string
-      remoteDarkIcon:
-        description: Part of icon file name for dark background that can be  fetched from server.
-        type: string
-      color:
-        $ref: '#/definitions/RGBColor'
-    required:
-      - alt
-      - localIcon
-
-  ModeIdentifier:
-    description: This is a map/dictionary with multiple items of this type. Each key is a mode identifier. See https://developer.tripgo.com/faq/#mode-identifiers.
-    properties:
-      title:
-        type: string
-      URL:
-        type: string
-      color:
-        $ref: '#/definitions/RGBColor'
-      icon:
-        type: string
-        description: File name part for downloading an image for this mode. [See separate documentation](TODO) for how to construct a URL from this.
-      implies:
-        type: string
-        description: Another mode identifier that is required by this one, e.g., you can't request only school buses without also requesting regular public transport.
-    required:
-      - title
-
-  ModeDetails:
-    description: This is a map/dictionary with multiple items of this type. Each key is a generic mode identifier. See https://developer.tripgo.com/faq/#mode-identifiers.
-    properties:
-      title:
-        type: string
-      URL:
-        type: string
-      modeInfo:
-        $ref: '#/definitions/ModeInfo'
-      specificModes:
-        description: Specific Modes enabled
-        type: array
-        items:
-          $ref: '#/definitions/SpecificModeDetails'
-      lockedModes:
-        description: Specific Modes requiring specific credentials
-        type: array
-        items:
-          $ref: '#/definitions/SpecificModeDetails'
-    required:
-      - title
-      - modeInfo
-
-  SpecificModeDetails:
-    properties:
-      title:
-        type: string
-      URL:
-        type: string
-      modeInfo:
-        $ref: '#/definitions/ModeInfo'
-      operators:
-        description: List of public operators names, see `operators` field
-        type: array
-        items:
-          type: string
-      integrations:
-        description: Integrations enabled
-        type: array
-        items:
-          type: string
-          enum:
-            - routing
-            - real_time
-            - bookings
-            - payments
-      minimumLocalCostForMembership:
-        description: If present, means that the mode requires the user a membership of the given value
-        type: number
-    required:
-      - modeInfo
-
-  OpeningHours:
-    type: string
-    description: Opening hours
-    externalDocs:
-      url: http://schema.org/openingHours
-    example:
-      timezone: Australia/Sydney
-      days:
-        - name: MONDAY
-          times:
-            - opens: 09:00
-              closes: 13:00
-            - opens: 18:00
-              closes: 02:00
-
-  PricingTable:
-    properties:
-      title:
-        type: string
-      subtitle:
-        type: string
-      currency:
-        type: string
-      currencySymbol:
-        type: string
-      entries:
-        type: array
-        items:
-          type: object
-          properties:
-            label:
-              type: string
-            price:
-              type: number
-            maxDurationInMinutes:
-              type: number
-              description: maximun duration for this price in minutes
-          required:
-            - price
-    required:
-      - title
-      - currency
-      - currencySymbol
-      - entries
-    example:
-      title: Casual pricing
-      currency: AUD
-      currencySymbol: $
-      entries:
-        - label: First hour
-          price: 0
-        - label: 1+ hours
-          price: 29
-      # - title: Weekend pricing
-      #   subtitle: Flat rate per exit, per day
-      #   currency: AUD
-      #   currencySymbol: $
-      #   entries:
-      #     - label: Sat - Sun
-      #       price: 22
-
-  Restrictions:
-    description: Information about the car park restrictions.
-    properties:
-      maxStayInMinutes:
-        description: Maximun stay time in minutes
-        type: number
-      noRestrictionWhenClosed:
-        description: If this is `true`, the restrictions applies only during the time zone defined in `openingHours`
-        type: boolean
-      allowedOnly:
-        description: Only the vehicles which satisfy these requirements could stay
-        type: array
-        items:
-          type: string
-          enum:
-            - SUBSCRIBERS
-            - VISITORS
-            - CUSTOMERS
-            - PERMIT_HOLDERS
-            - EVENTS
-            - VALET
-            - DISABLED
-            - COACH
-            - MOTORCYCLES
-      notAllowed:
-        description: The vehicle types which are not allowed to stay
-        type: array
-        items:
-          type: string
-          enum:
-            - SUVS
-            - LPG_CARS
-    example:
-      maxStayInMinutes: 120
-      noRestrictionWhenClosed: true
-      allowedOnly: CUSTOMERS
-
-  Entrance:
-    description: Information about the car park entrance.
-    properties:
-      type:
-        description: Entrance type identifier
-        type: string
-        enum:
-            - ENTRANCE_EXIT
-            - ENTRANCE_ONLY
-            - EXIT_ONLY
-            - PEDESTRIAN
-            - DISABLED_PEDESTRIAN
-            - PERMIT
-      address:
-        type: string
-      lat:
-        type: number
-        description: Latitude
-      lng:
-        type: number
-        description: Longitude
-    required:
-      - type
-      - lat
-      - lng
-
-  LocalCost:
-    description: Information about the money cost of this segment in local currency. Missing when price doesn't apply (e.g. walking) or is unknown.
-    properties:
-      minCost:
-        type: number
-        description: Minimum value for when the price is within a range
-      maxCost:
-        type: number
-        description: Maximum value for when the price is within a range
-      cost:
-        type: number
-        description: Cost of this segment in local currency (it's an average for ranges, considering quartile info)
-      accuracy:
-        type: string
-        description: Level of accuracy of this cost
-        enum:
-          - internal_estimate
-          - external_estimate
-          - confirmed
-      currency:
-        type: string
-        description: The ISO 4217 currency code
-    required:
-      - cost
-      - accuracy
-      - currency
-
-  RealTimeAlert:
-    description:
-      An alert or warning, typically used for services, trip segments, or stop locations.
-    properties:
-      title:
-        type: string
-      hashCode:
-        type: integer
-        description:  |
-          Hash code of this alert. Used when servlets provide a list of alerts separately
-          from services or trip segments referencing them via their hash code.
-      severity:
-        type: string
-        description: Severity level of the alert
-        enum:
-          - alert
-          - warning
-          - info
-      text:
-        type: string
-        description: Longer description of the alert
-      url:
-        type: string
-        description: URL with more information about the disruption
-      remoteIcon:
-        description: Part of icon file name that can be fetched from server.
-        type: string
-      location:
-        $ref: '#/definitions/Location'
-      action:
-        $ref: '#/definitions/RealTimeAction'
-    required:
-      - title
-      - hashCode
-      - severity
-
-  RealTimeAction:
-    description:
-      Provides information about a possible action to deal with the problem described in the alert
-    properties:
-      text:
-        description: description of the action
-        type: string
-      type:
-        type: string
-        description: possible actions types, currently only one, may be extended in the future
-        enum:
-          - rerouteExcludingStops
-      excludedStopCodes:
-        type: array
-        description: Array of affected stop codes
-        items:
-          type: string
-    required:
-      - text
-      - type
-
-  RealTimeVehicle:
-    description:
-      Location information of a vehicle based on real-time data
-    properties:
-      id:
-        type: string
-        description: Internal identifier
-      lastUpdate:
-        type: integer
-        description: Time the vehicle was at the reported position
-      location:
-        type: object
-        properties:
-          lat:
-            type: number
-            description: Latitude
-          lng:
-            type: number
-            description: Longitude
-          bearing:
-            type: integer
-            description: Angle of travel the vehicle was last travelling in. As true bearing. See http://en.wikipedia.org/wiki/Haversine_formula or http://www.movable-type.co.uk/scripts/latlong.html.
-            # minValue: 0
-            # maxValue: 359
-            # multipleOf: 1
-        required:
-          - lat
-          - lng
-      components:
-        description: Components of this vehicle with additional information. The top level array represents connected parts of the vehicle, which you can't walk through without leaving the vehicle (e.g., two trains connected together). The inner level array represents then parts that can be walked through (e.g., the waggons of a train). A bus would have a `[[component1]]`. A train could have `[[c1, c2, c3, c4], [c5, c6, c7, c8]]`. The arrays are ordered by direction of travel always being left-to-right, i.e., the front of the train is the very last element.
-        type: array
-        items:
+        missing:
+          type: array
+          items:
+            type: string
+        invalid:
           type: array
           items:
             type: object
             properties:
-              occupancy:
+              name:
                 type: string
-                description: How full this part of the vehicle is. See https://developers.google.com/transit/gtfs-realtime/gtfs-realtime-proto.
-                enum:
-                  - EMPTY
-                  - MANY_SEATS_AVAILABLE
-                  - FEW_SEATS_AVAILABLE
-                  - STANDING_ROOM_ONLY
-                  - CRUSHED_STANDING_ROOM_ONLY
-                  - FULL
-                  - NOT_ACCEPTING_PASSENGERS
-              wifi:
-                type: boolean
-                description: Whether this part of the vehicle has Wi-Fi service.
-              airConditioned:
-                type: boolean
-                description: Whether this part of the vehicle is equiped with air conditioned.
-              wheelchairAccessible:
-                type: boolean
-                description: Whether this part of the vehicle is wheel chair capable.
-              wheelchairSeats:
-                type: integer
-                description: Indicates the number of wheel chairs that can be accommodated on this vehicle.
-              model:
+              reason:
                 type: string
-                description: Indicates the type of vehicle performing this trip. Please check operator documentation to determine how this field is composed.
-    required:
-      - id
-      - lastUpdate
-      - location
 
-  Region:
-    properties:
-      id:
-        type: string
-        description: Identifier for the region
-      cities:
-        type: array
-        description: List of bigger cities covered by this region. Note that this can be empty.
-        minItems: 0
-        items:
+
+  schemas:
+
+    BookingInfo:
+      properties:
+        title:
+          type: string
+          description: Localized title for booking button.
+        externalActions:
+          type: array
+          items:
+            type: string
+            description: URL or Identifiers such as `lyft` for app-to-app integration.
+        url:
+          type: string
+          description: URL for Form-Based booking flow
+        quickBookingsUrl:
+          type: string
+          description: URL for quick booking flow
+        productID:
+          type: string
+          description: ID of the product in externalActions (currently only used for Uber and Lyft)
+        confirmation:
+          $ref: 'https://developer.tripgo.com/specs/modules/booking.definitions.yaml#/LocalizedBookingConfirmationInfo'
+      required:
+        - title
+
+    RGBColor:
+      properties:
+        red:
+          type: integer
+          minimum: 0
+          maximum: 255
+        blue:
+          type: integer
+          minimum: 0
+          maximum: 255
+        green:
+          type: integer
+          minimum: 0
+          maximum: 255
+      required:
+        - red
+        - blue
+        - green
+
+    Coordinate:
+      properties:
+        lat:
+          type: number
+          description: Latitude
+        lng:
+          type: number
+          description: Longitude
+      required:
+        - lat
+        - lng
+
+    Location:
+      allOf:
+      - $ref: '#/components/schemas/Coordinate'
+      - type: object
+        properties:
+          timezone:
+            type: string
+            description: Timezone identifier
+          address:
+            type: string
+        required:
+          - timezone
+
+    StopLocation:
+      allOf:
+      - $ref: '#/components/schemas/Location'
+      - type: object
+        properties:
+          code:
+            type: string
+            description: Internal identifier for the stop
+          name:
+            type: string
+            description: Official name of the stop
+          popularity:
+            type: integer
+            description: Number for popularity of stop defined by number of services and their types.
+          modeInfo:
+            $ref: '#/components/schemas/ModeInfo'
+          wheelchairAccessible:
+            type: boolean
+            description: Is this stop wheelchair accessible? Missing when unknown.
+        required:
+          - code
+          - name
+          - popularity
+          - modeInfo
+
+    StopLocationParent:
+      allOf:
+      - $ref: '#/components/schemas/StopLocation'
+      - type: object
+        properties:
+          children:
+            type: array
+            items:
+              allOf:
+                - $ref: '#/components/schemas/StopLocation'
+                - type: object
+                  properties:
+                    childName:
+                      type: string
+                      description: Platform number
+
+    BikePodInfo:
+      properties:
+        identifier:
+          type: string
+        operator:
+          $ref: '#/components/schemas/CompanyInfo'
+        inService:
+          description: Whether this pod is currently in service (e.g., some might be closed for maintenance or during winter months)
+          type: boolean
+        totalSpaces:
+          description: Static information of total spaces
+          type: integer
+        availableBikes:
+          description: |
+            Real-time information of available bikes.
+
+            Note that this can be *more* than the total spaces for providers that have free-floating bicycles that are left at a station even though there's no bike dock.
+          type: integer
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Timestamp `availableBikes` got recorded in ISO8601 format
+        source:
+          $ref: '#/components/schemas/DataSourceAttribution'
+      required:
+        - identifier
+        - operator
+
+    BikePodLocation:
+      allOf:
+      - $ref: '#/components/schemas/Location'
+      - type: object
+        properties:
+          bikePod:
+            $ref: '#/components/schemas/BikePodInfo'
+          modeInfo:
+            $ref: '#/components/schemas/ModeInfo'
+        required:
+          - bikePod
+          - modeInfo
+
+    CarParkInfo:
+      properties:
+        identifier:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        operator:
+          $ref: '#/components/schemas/CompanyInfo'
+        totalSpaces:
+          description: Static information of total spaces
+          type: integer
+        availableSpaces:
+          description: Real-time information of available spaces
+          type: integer
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Timestamp `availableSpaces` got recorded in ISO8601 format
+        onStreetParking:
+          type: boolean
+        encodedParkingArea:
+          type: string
+          description: |
+            Encoded polygon (or polyline) of parking area. Typically a polyline for on-street parking and a polygon for off-street parking.
+            Encoded using Google's Encoded Polyline Algorithm. See https://developers.google.com/maps/documentation/utilities/polylinealgorithm.
+        openingHours:
+          $ref: '#/components/schemas/OpeningHours'
+        pricingTable:
+          type: array
+          items:
+            $ref: '#/components/schemas/PricingTable'
+        restrictions:
+          $ref: '#/components/schemas/Restrictions'
+          type: object
+        entrances:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entrance'
+        source:
+          $ref: '#/components/schemas/DataSourceAttribution'
+        info:
+          type: string
+          description: Additional information about this car park.
+      required:
+        - identifier
+        - name
+        - address
+
+    CarParkLocation:
+      allOf:
+      - $ref: '#/components/schemas/Location'
+      - type: object
+        properties:
+          carPark:
+            $ref: '#/components/schemas/CarParkInfo'
+          modeInfo:
+            $ref: '#/components/schemas/ModeInfo'
+        required:
+          - carPark
+          - modeInfo
+
+    NearbyCarParkLocation:
+      allOf:
+      - $ref: '#/components/schemas/CarParkLocation'
+      - type: object
+        properties:
+          additionalWalking:
+            type: object
+            properties:
+              duration:
+                type: integer
+                description: Duration in seconds for walking from car park to destination of segment
+              metres:
+                type: integer
+                description: Distance in metres for walking from car park to destination of segment
+              encodedPath:
+                type: string
+                description: |
+                  Encoded polyline for walking from car park to destination of segment.
+                  Encoded using Google's Encoded Polyline Algorithm. See https://developers.google.com/maps/documentation/utilities/polylinealgorithm.
+            required:
+              - duration
+              - metres
+              - encodedPath
+
+    CarPodInfo:
+      properties:
+        identifier:
+          type: string
+        operator:
+          $ref: '#/components/schemas/CompanyInfo'
+        vehicles:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                description: Long-form description of the vehicle
+                type: string
+              licensePlate:
+                type: string
+              engineType:
+                type: string
+              fuelType:
+                type: string
+              fuelLevel:
+                description: Pcercentage how full the vehicle is
+                type: integer
+                # minValue: 0
+                # maxValue: 100
+                # multipleOf: 1
+              pricingTable:
+                $ref: '#/components/schemas/PricingTable'
+      required:
+        - identifier
+        - operator
+        - vehicles
+
+    CarPodLocation:
+      allOf:
+      - $ref: '#/components/schemas/Location'
+      - type: object
+        properties:
+          carPod:
+            $ref: '#/components/schemas/CarPodInfo'
+          modeInfo:
+            $ref: '#/components/schemas/ModeInfo'
+        required:
+          - carPod
+          - modeInfo
+
+    CarRentalInfo:
+      properties:
+        identifier:
+          type: string
+        company:
+          $ref: '#/components/schemas/CompanyInfo'
+        openingHours:
+          $ref: '#/components/schemas/OpeningHours'
+        source:
+          $ref: '#/components/schemas/DataSourceAttribution'
+      required:
+        - identifier
+        - company
+
+    CarRentalLocation:
+      allOf:
+      - $ref: '#/components/schemas/Location'
+      - type: object
+        properties:
+          carRental:
+            $ref: '#/components/schemas/CarRentalInfo'
+          modeInfo:
+            $ref: '#/components/schemas/ModeInfo'
+        required:
+          - carRental
+          - modeInfo
+
+    CompanyInfo:
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+        remoteIcon:
+          type: string
+        remoteDarkIcon:
+          type: string
+        color:
+          $ref: '#/components/schemas/RGBColor'
+      required:
+        - name
+
+    DataSourceAttribution:
+      description:
+        Information on how data should get attributed. When present, this needs to get displayed on relevant screens / views.
+      properties:
+        provider:
+          $ref: '#/components/schemas/CompanyInfo'
+        disclaimer:
+          type: string
+          description: Longer disclaimer that should be displayed for this provider
+      required:
+        - provider
+
+    ArrayOfDataSourceAttribution:
+      type: array
+      items:
+        $ref: '#/components/schemas/DataSourceAttribution'
+
+    LocationInfo:
+      allOf:
+      - $ref: '#/components/schemas/Coordinate'
+      - type: object
+        properties:
+          details:
+            properties:
+              w3w:
+                type: string
+              w3wInfoURL:
+                type: string
+          stop:
+            $ref: '#/components/schemas/StopLocation'
+          bikePod:
+            $ref: '#/components/schemas/BikePodInfo'
+          carPark:
+            $ref: '#/components/schemas/CarParkInfo'
+        #   carPod:
+        #     $ref: '#/components/schemas/CarPodInfo'
+          carRental:
+            $ref: '#/components/schemas/CarRentalInfo'
+
+    GroupedLocations:
+      type: object
+      properties:
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                description: cellID
+              hashCode:
+                type: integer
+                description: Hash code of content
+              bikePods:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BikePodLocation'
+              carParks:
+                 type: array
+                 items:
+                   $ref: '#/components/schemas/CarParkLocation'
+              # carPods:
+              #   type: array
+              #   items:
+              #     $ref: '#/components/schemas/CarPodLocation'
+              carRentals:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CarRentalLocation'
+              stops:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StopLocation'
+            required:
+              - key
+              - hashCode
+
+    ModeInfo:
+      properties:
+        identifier:
+          description: |
+            Typically a mode-identifier, but it can be more specific that the one from the query, e.g., `pt_pub_bus` even though the query requested `pt_pub`. Missing for stationary segments.
+          type: string
+        alt:
+          description: Textual alternative to icon
+          type: string
+        localIcon:
+          description: Part of icon file name that should be shipped with app.
+          type: string
+        remoteIcon:
+          description: Part of icon file name that can be fetched from server.
+          type: string
+        remoteDarkIcon:
+          description: Part of icon file name for dark background that can be  fetched from server.
+          type: string
+        color:
+          $ref: '#/components/schemas/RGBColor'
+      required:
+        - alt
+        - localIcon
+
+    ModeIdentifier:
+      description: This is a map/dictionary with multiple items of this type. Each key is a mode identifier. See https://developer.tripgo.com/faq/#mode-identifiers.
+      properties:
+        title:
+          type: string
+        URL:
+          type: string
+        color:
+          $ref: '#/components/schemas/RGBColor'
+        icon:
+          type: string
+          description: File name part for downloading an image for this mode. [See separate documentation](TODO) for how to construct a URL from this.
+        implies:
+          type: string
+          description: Another mode identifier that is required by this one, e.g., you can't request only school buses without also requesting regular public transport.
+      required:
+        - title
+
+    ModeDetails:
+      description: This is a map/dictionary with multiple items of this type. Each key is a generic mode identifier. See https://developer.tripgo.com/faq/#mode-identifiers.
+      properties:
+        title:
+          type: string
+        URL:
+          type: string
+        modeInfo:
+          $ref: '#/components/schemas/ModeInfo'
+        specificModes:
+          description: Specific Modes enabled
+          type: array
+          items:
+            $ref: '#/components/schemas/SpecificModeDetails'
+        lockedModes:
+          description: Specific Modes requiring specific credentials
+          type: array
+          items:
+            $ref: '#/components/schemas/SpecificModeDetails'
+      required:
+        - title
+        - modeInfo
+
+    SpecificModeDetails:
+      properties:
+        title:
+          type: string
+        URL:
+          type: string
+        modeInfo:
+          $ref: '#/components/schemas/ModeInfo'
+        operators:
+          description: List of public operators names, see `operators` field
+          type: array
+          items:
+            type: string
+        integrations:
+          description: Integrations enabled
+          type: array
+          items:
+            type: string
+            enum:
+              - routing
+              - real_time
+              - bookings
+              - payments
+        minimumLocalCostForMembership:
+          description: If present, means that the mode requires the user a membership of the given value
+          type: number
+      required:
+        - modeInfo
+
+    OpeningHours:
+      type: string
+      description: Opening hours
+      externalDocs:
+        url: "http://schema.org/openingHours"
+      example:
+        timezone: Australia/Sydney
+        days:
+          - name: MONDAY
+            times:
+              - opens: 09:00
+                closes: 13:00
+              - opens: 18:00
+                closes: 02:00
+
+    PricingTable:
+      properties:
+        title:
+          type: string
+        subtitle:
+          type: string
+        currency:
+          type: string
+        currencySymbol:
+          type: string
+        entries:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              price:
+                type: number
+              maxDurationInMinutes:
+                type: number
+                description: maximun duration for this price in minutes
+            required:
+              - price
+      required:
+        - title
+        - currency
+        - currencySymbol
+        - entries
+      example:
+        title: Casual pricing
+        currency: AUD
+        currencySymbol: $
+        entries:
+          - label: First hour
+            price: 0
+          - label: 1+ hours
+            price: 29
+        # - title: Weekend pricing
+        #   subtitle: Flat rate per exit, per day
+        #   currency: AUD
+        #   currencySymbol: $
+        #   entries:
+        #     - label: Sat - Sun
+        #       price: 22
+
+    Restrictions:
+      description: Information about the car park restrictions.
+      properties:
+        maxStayInMinutes:
+          description: Maximun stay time in minutes
+          type: number
+        noRestrictionWhenClosed:
+          description: If this is `true`, the restrictions applies only during the time zone defined in `openingHours`
+          type: boolean
+        allowedOnly:
+          description: Only the vehicles which satisfy these requirements could stay
+          type: array
+          items:
+            type: string
+            enum:
+              - SUBSCRIBERS
+              - VISITORS
+              - CUSTOMERS
+              - PERMIT_HOLDERS
+              - EVENTS
+              - VALET
+              - DISABLED
+              - COACH
+              - MOTORCYCLES
+        notAllowed:
+          description: The vehicle types which are not allowed to stay
+          type: array
+          items:
+            type: string
+            enum:
+              - SUVS
+              - LPG_CARS
+      example:
+        maxStayInMinutes: 120
+        noRestrictionWhenClosed: true
+        allowedOnly: CUSTOMERS
+
+    Entrance:
+      description: Information about the car park entrance.
+      properties:
+        type:
+          description: Entrance type identifier
+          type: string
+          enum:
+              - ENTRANCE_EXIT
+              - ENTRANCE_ONLY
+              - EXIT_ONLY
+              - PEDESTRIAN
+              - DISABLED_PEDESTRIAN
+              - PERMIT
+        address:
+          type: string
+        lat:
+          type: number
+          description: Latitude
+        lng:
+          type: number
+          description: Longitude
+      required:
+        - type
+        - lat
+        - lng
+
+    LocalCost:
+      description: Information about the money cost of this segment in local currency. Missing when price doesn't apply (e.g. walking) or is unknown.
+      properties:
+        minCost:
+          type: number
+          description: Minimum value for when the price is within a range
+        maxCost:
+          type: number
+          description: Maximum value for when the price is within a range
+        cost:
+          type: number
+          description: Cost of this segment in local currency (it's an average for ranges, considering quartile info)
+        accuracy:
+          type: string
+          description: Level of accuracy of this cost
+          enum:
+            - internal_estimate
+            - external_estimate
+            - confirmed
+        currency:
+          type: string
+          description: The ISO 4217 currency code
+      required:
+        - cost
+        - accuracy
+        - currency
+
+    RealTimeAlert:
+      description:
+        An alert or warning, typically used for services, trip segments, or stop locations.
+      properties:
+        title:
+          type: string
+        hashCode:
+          type: integer
+          description:  |
+            Hash code of this alert. Used when servlets provide a list of alerts separately
+            from services or trip segments referencing them via their hash code.
+        severity:
+          type: string
+          description: Severity level of the alert
+          enum:
+            - alert
+            - warning
+            - info
+        text:
+          type: string
+          description: Longer description of the alert
+        url:
+          type: string
+          description: URL with more information about the disruption
+        remoteIcon:
+          description: Part of icon file name that can be fetched from server.
+          type: string
+        location:
+          $ref: '#/components/schemas/Location'
+        action:
+          $ref: '#/components/schemas/RealTimeAction'
+      required:
+        - title
+        - hashCode
+        - severity
+
+    RealTimeAction:
+      description:
+        Provides information about a possible action to deal with the problem described in the alert
+      properties:
+        text:
+          description: description of the action
+          type: string
+        type:
+          type: string
+          description: possible actions types, currently only one, may be extended in the future
+          enum:
+            - rerouteExcludingStops
+        excludedStopCodes:
+          type: array
+          description: Array of affected stop codes
+          items:
+            type: string
+      required:
+        - text
+        - type
+
+    RealTimeVehicle:
+      description:
+        Location information of a vehicle based on real-time data
+      properties:
+        id:
+          type: string
+          description: Internal identifier
+        lastUpdate:
+          type: integer
+          description: Time the vehicle was at the reported position
+        location:
           type: object
           properties:
             lat:
               type: number
+              description: Latitude
             lng:
               type: number
-            title:
-              type: string
-            timezone:
-              type: string
+              description: Longitude
+            bearing:
+              type: integer
+              description: Angle of travel the vehicle was last travelling in. As true bearing. See http://en.wikipedia.org/wiki/Haversine_formula or http://www.movable-type.co.uk/scripts/latlong.html.
+              # minValue: 0
+              # maxValue: 359
+              # multipleOf: 1
           required:
             - lat
             - lng
-            - title
-            - timezone
-
-      polygon:
-        type: string
-        description:
-          Encoded polygon of coverage area for the region, using
-          Google's Encoded Polyline Algorithm. See
-          https://developers.google.com/maps/documentation/utilities/polylinealgorithm.
-      modes:
-        type: array
-        description:
-          List of mode identifiers that are available in this region (but not necessarily everywhere in that region).
-          Look at `modes` array in `/regions` to get more details on each mode. These are also the modes that can be
-           used as input to any routing endpoint. See
-           https://developer.tripgo.com/faq/#mode-identifiers.
-        items:
-          type: string
-    required:
-      - id
-      - polygon
-      - cities
-      - modes
-    example:
-      id: DE_BV_Nuremberg
-      polygon: SDf9723rhkjFKHAFB
-      cities:
-        - title: Nuremberg
-          lat: 1.1
-          lng: 14.2
-          timezone: Europe/Berlin
-        - title: Erlangen
-          lat: 1.2
-          lng: 15.2
-          timezone: Europe/Berlin
-      modes:
-        - pt_pub
-        - me_car
-        - me_mot
-        - cy_bic
-        - cy_bic-s_NORIS
-        - wa_wal
-
-  RealtimeData:
-    description: Real Time availability.
-    properties:
-      alerts:
-        type: boolean
-        description: Boolean if entity has alerts.
-      positions:
-        type: boolean
-        description: Boolean if entity has vehicle positions.
-      updates:
-        type: boolean
-        description: Boolean if entity has trip updates.
-
-  RegionDetail:
-    properties:
-      code:
-        type: string
-        description: Internal identifier for the region
-      streetBicyclePaths:
-        type: boolean
-        description: Whether the TripGo API has bike path data for this region.
-      streetWheelchairAccessibility:
-        type: boolean
-        description: Whether the TripGo API has information on wheelchair-friendliness of footpaths.
-      transitBicycleAccessibility:
-        type: boolean
-        description: Whether the TripGo API has information on whether you can take bicycles on public transport or not.
-      transitConcessionPricing:
-        type: boolean
-        description: Whether the TripGo API supports concession/student pricing for public transport for this region.
-      transitModes:
-        type: array
-        items:
-          $ref: '#/definitions/ModeInfo'
-      modes:
-        type: object
-        properties:
-          $genericModeIdentifier:
-            $ref: '#/definitions/ModeDetails'
-      transitWheelchairAccessibility:
-        type: boolean
-        description: Whether the TripGo API includes wheelchair accessibility information for public transport for this region.
-      operators:
-        type: array
-        items:
-          title: OperatorInformation
-          type: object
-          properties:
-            name:
-              type: string
-            numberOfServices:
-              type: integer
-            realTimeStatus:
-              type: string
-              enum:
-                - IS_REAL_TIME
-                - INCAPABLE
-            modes:
-              type: array
-              description: List of available modes, see `modes` field
-              items:
-                type: string
-          required:
-            - name
-            - numberOfServices
-            - realTimeStatus
-            - modes
-
-    required:
-      - code
-      - streetBicyclePaths
-      - streetWheelchairAccessibility
-      - transitBicycleAccessibility
-      - transitConcessionPricing
-      - transitModes
-      - transitWheelchairAccessibility
-      - operators
-    example:
-      code: DE_HH_Hamburg
-      streetBicyclePaths: true
-      streetWheelchairAccessibility: false
-      transitBicycleAccessibility: false
-      transitConcessionPricing: false
-      transitWheelchairAccessibility: true
-      transitModes:
-        - identifier: pt_pub_ferry
-          alt: ferry
-          localIcon: ferry
-          remoteIcon: ferry-germany-hamburg
-          color:
-            red: 0
-            blue: 211
-            green: 157
-      operators:
-      - modes:
-        - pt_pub_train
-        - pt_pub_tram
-        - pt_pub_subway
-        - pt_pub_bus
-        name: VGN
-        numberOfServices: 50056
-        realTimeStatus: INCAPABLE
-        types:
-        - alt: train
-          identifier: pt_pub_train
-          localIcon: train
-        - alt: tram
-          identifier: pt_pub_tram
-          localIcon: tram
-        - alt: subway
-          color:
-            blue: 165
-            green: 103
-            red: 0
-          identifier: pt_pub_subway
-          localIcon: subway
-          remoteIcon: subway-germany
-        - alt: bus
-          identifier: pt_pub_bus
-          localIcon: bus
-      - modes:
-        - pt_pub_bus
-        name: FlixBus
-        numberOfServices: 1597
-        realTimeStatus: INCAPABLE
-        types:
-        - alt: bus
-          identifier: pt_pub_bus
-          localIcon: bus
-      - modes:
-        - pt_pub_train
-        name: DPN
-        numberOfServices: 201
-        realTimeStatus: INCAPABLE
-        types:
-        - alt: train
-          identifier: pt_pub_train
-          localIcon: train
-      modes:
-        cy_bic-s:
-          modeInfo:
-            alt: Bike share
-            color:
-              blue: 99
-              green: 199
-              red: 30
-            identifier: cy_bic-s
-            localIcon: bicycle-share
-          specificModes:
-          - integrations:
-            - routing
-            - real_time
-            minimumLocalCostForMembership: 0
-            modeInfo:
-              alt: NorisBike
-              color:
-                blue: 56
-                green: 22
-                red: 236
-              description: NorisBike
-              identifier: cy_bic-s_norisbike-nurnberg
-              localIcon: bicycle-share
-            title: NorisBike
-            url: http://www.norisbike.de
-          title: Bike share
-        me_car-p:
-          lockedModes:
-          - integrations:
-            - routing
-            modeInfo:
-              alt: BlaBlaCar
-              color:
-                blue: 184
-                green: 132
-                red: 19
-              description: BlaBlaCar
-              identifier: me_car-p_BlaBlaCar
-              localIcon: car-pool
-              remoteIcon: blablacar
-            title: BlaBlaCar
-            url: https://www.blablacar.com
-          modeInfo:
-            alt: Carpooling
-            color:
-              blue: 199
-              green: 196
-              red: 46
-            identifier: me_car-p
-            localIcon: car-pool
-          title: Carpooling
-        me_car-r:
-          lockedModes:
-          - integrations:
-            - routing
-            minimumLocalCostForMembership: 0
-            modeInfo:
-              alt: Car rental
-              color:
-                blue: 243
-                green: 169
-                red: 115
-              identifier: me_car-r_SwiftFleet
-              localIcon: car-share
-            title: Car rental
-          modeInfo:
-            alt: Car rental
-            color:
-              blue: 243
-              green: 169
-              red: 115
-            identifier: me_car-r
-            localIcon: car-share
-          title: Car rental
-        me_car-s:
-          lockedModes:
-          - integrations:
-            - routing
-            - real_time
-            modeInfo:
-              alt: Flinkster
-              color:
-                blue: 27
-                green: 13
-                red: 252
-              description: Flinkster
-              identifier: me_car-s_FLINK
-              localIcon: car-share
-            title: Flinkster
-            url: https://www.flinkster.de
-          modeInfo:
-            alt: Car share
-            color:
-              blue: 243
-              green: 169
-              red: 115
-            identifier: me_car-s
-            localIcon: car-share
-          title: Car share
-        ps_tax:
-          lockedModes:
-          - integrations:
-            - routing
-            modeInfo:
-              alt: myDriver
-              color:
-                blue: 0
-                green: 0
-                red: 0
-              description: myDriver
-              identifier: ps_tax_MYDRIVER
-              localIcon: taxi
-              remoteIcon: mydriver
-            title: myDriver
-            url: https://mydriver.com
-          modeInfo:
-            alt: Taxi
-            color:
-              blue: 62
-              green: 202
-              red: 221
-            identifier: ps_tax
-            localIcon: taxi
-          title: Taxi
-        ps_tnc:
-          modeInfo:
-            alt: Ride share
-            color:
-              blue: 243
-              green: 169
-              red: 115
-            identifier: ps_tnc
-            localIcon: tnc
-          specificModes:
-          - integrations:
-            - routing
-            - real_time
-            modeInfo:
-              alt: Skedgo
-              color:
-                blue: 47
-                green: 255
-                red: 47
-              description: Skedgo
-              identifier: ps_tnc_ODB
-              localIcon: tnc
-              remoteIcon: skedgo
-            title: Skedgo
-            url: https://www.skedgo.com
-          title: Ride share
-        pt_pub:
-          modeInfo:
-            alt: Public transport
-            color:
-              blue: 104
-              green: 197
-              red: 45
-            identifier: pt_pub
-            localIcon: public
-          specificModes:
-          - modeInfo:
-              alt: train
-              identifier: pt_pub_train
-              localIcon: train
-            operators:
-            - VGN
-            - DPN
-          - modeInfo:
-              alt: subway
-              color:
-                blue: 165
-                green: 103
-                red: 0
-              identifier: pt_pub_subway
-              localIcon: subway
-              remoteIcon: subway-germany
-            operators:
-            - VGN
-          - modeInfo:
-              alt: tram
-              identifier: pt_pub_tram
-              localIcon: tram
-            operators:
-            - VGN
-          - modeInfo:
-              alt: bus
-              identifier: pt_pub_bus
-              localIcon: bus
-            operators:
-            - VGN
-            - FlixBus
-          title: Public transport
-
-  Service:
-    description: Details of public transport service
-    properties:
-      operator:
-        type: string
-      serviceTripID:
-        type: string
-        description: Internal identifier of the service. Related to `trip_id` in GTFS.
-      serviceName:
-        type: string
-        description: Long name of the service. Related to `route_long_name` in GTFS.
-      serviceNumber:
-        type: string
-        description: Short name of the service. Related to `route_short_name` in GTFS.
-      serviceDirection:
-        type: string
-        description: Head sign of the service, indicating its direction. Related to `head_sign` in GTFS.
-      serviceColor:
-        $ref: '#/definitions/RGBColor'
-      bicycleAccessible:
-        description: Can you take a bicycle on this service? Missing when unknown.
-        type: boolean
-      wheelchairAccessible:
-        type: boolean
-        description: |
-          If this service is wheelchair accessible or not. If this field is missing, this does not mean that it is not accessible, but rather that it is unknown whether it is accessible. Only if the value is present and is `false`, does it mean that the service is not wheelchair accessible.
-    required:
-      - operator
-      - serviceTripID
-    example:
-      operator: Sydney Buses
-      serviceDirection: CITY Circular Quay
-      serviceName: Maroubra Beach - Circular Quay
-      serviceNumber: "377"
-      serviceTripID: "142496466_20160307_11954"
-
-  ServiceDeparture:
-    description: Details of a service departing at a particular time
-    allOf:
-    - $ref: '#/definitions/Service'
-    - type: object
-      properties:
-        startTime:
-          type: string
-          format: date-time
-          description: Departure of the service  as per timetable in ISO8601 format.
-        modeInfo:
-          $ref: '#/definitions/ModeInfo'
-        realTimeStatus:
-          type: string
-          description: Indicator for whether real-time information is available for this service. Note that even if this says the service is real-time, this does not mean the `startTime` is real-time.
-          enum:
-            - IS_REAL_TIME
-            - CAPABLE
-            - INCAPABLE
-        realtimeVehicle:
-          # description: The vehicle for this specific service.
-          $ref: '#/definitions/RealTimeVehicle'
-        realtimeAlternativeVehicle:
-          description: Alternative vehicles for the same route, but not necessarily, this specific service.
+        components:
+          description: Components of this vehicle with additional information. The top level array represents connected parts of the vehicle, which you can't walk through without leaving the vehicle (e.g., two trains connected together). The inner level array represents then parts that can be walked through (e.g., the waggons of a train). A bus would have a `[[component1]]`. A train could have `[[c1, c2, c3, c4], [c5, c6, c7, c8]]`. The arrays are ordered by direction of travel always being left-to-right, i.e., the front of the train is the very last element.
           type: array
           items:
-            $ref: '#/definitions/RealTimeVehicle'
-        alerts:
-          description: Service alerts / disruption information that affect this service.
-          type: array
-          items:
-            $ref: '#/definitions/RealTimeAlert'
-        bicycleAccessible:
-          description: Can you take a bicycle on this service? Missing when unknown.
-          type: boolean
-        wheelchairAccessible:
-          description: Is this service wheelchair accessible? Missing when unknown.
-          type: boolean
+            type: array
+            items:
+              type: object
+              properties:
+                occupancy:
+                  type: string
+                  description: How full this part of the vehicle is. See https://developers.google.com/transit/gtfs-realtime/gtfs-realtime-proto.
+                  enum:
+                    - EMPTY
+                    - MANY_SEATS_AVAILABLE
+                    - FEW_SEATS_AVAILABLE
+                    - STANDING_ROOM_ONLY
+                    - CRUSHED_STANDING_ROOM_ONLY
+                    - FULL
+                    - NOT_ACCEPTING_PASSENGERS
+                wifi:
+                  type: boolean
+                  description: Whether this part of the vehicle has Wi-Fi service.
+                airConditioned:
+                  type: boolean
+                  description: Whether this part of the vehicle is equiped with air conditioned.
+                wheelchairAccessible:
+                  type: boolean
+                  description: Whether this part of the vehicle is wheel chair capable.
+                wheelchairSeats:
+                  type: integer
+                  description: Indicates the number of wheel chairs that can be accommodated on this vehicle.
+                model:
+                  type: string
+                  description: Indicates the type of vehicle performing this trip. Please check operator documentation to determine how this field is composed.
       required:
-        - startTime
-        - modeInfo
-      example:
-        startTime: 1458708255
-        modeInfo:
-          alt: bus
-          identifier: pt_pub_bus
-          localIcon: bus
-        operator: Sydney Buses
-        realTimeStatus: CAPABLE
-        serviceDirection: CITY Circular Quay
-        serviceName: Maroubra Beach - Circular Quay
-        serviceNumber: "377"
-        serviceTripID: "142496466_20160307_11954"
-        bicycleAccessible: false
-        wheelchairAccessible: true
+        - id
+        - lastUpdate
+        - location
 
-  ServiceShape:
-    description:
-      Details of the specific route that a service takes.
-
-      Which stops are included in the `stops` list depends on the `travelled` status of the segment. For travelled segments, all stops including embarkation and disembarkation are included. Non-travelled segments however exclude the embarkation and disembarkation (as those would have been part of the travelled shape already).
-
-      If there's a train from A to H and the travelled part is C to F, which changes its service identifier at E, we end up with 4 segments. 1) non-travelled with `A+B`, 2) travelled with `C+D`, 3) travelled with `E+F`, 4) non-travelled with `G+H`.
-
-    allOf:
-    - $ref: '#/definitions/Service'
-    - type: object
+    Region:
       properties:
-        encodedWaypoints:
+        id:
           type: string
-          description: |
-            Encoded polyline of route that this service is taking.
-            Encoded using Google's Encoded Polyline Algorithm. See https://developers.google.com/maps/documentation/utilities/polylinealgorithm.
-        travelled:
-          type: boolean
-          description: |
-            Whether this shape is travelled for the provided input. A transit segment of a trip can include shapes which are not travelled, to indicate where the service was coming from before the embarkation stop and where it's going to after the disembarkation stop.
-        stops:
+          description: Identifier for the region
+        cities:
           type: array
+          description: List of bigger cities covered by this region. Note that this can be empty.
+          minItems: 0
           items:
             type: object
             properties:
@@ -2495,473 +2083,961 @@ definitions:
                 type: number
               lng:
                 type: number
-              code:
+              title:
                 type: string
-                description: The stop's code (matches GTFS `stopCode`)
-              name:
+              timezone:
                 type: string
-                description: Name of the stop (might include platform)
-              shortName:
-                type: string
-                description: Platform information of the stop. Might double-up with `name`.
-              bearing:
-                type: integer
-                description: Angle of travel from this stop to the next. As true bearing. See http://en.wikipedia.org/wiki/Haversine_formula or http://www.movable-type.co.uk/scripts/latlong.html.
-              arrival:
-                type: string
-                format: date-time
-                description: Arrival time at this stop in ISO8601 format.
-              departure:
-                type: string
-                format: date-time
-                description: Departure time from this stop in ISO8601 format.
-              relativeArrival:
-                type: integer
-                description: Arrival time at this stop in seconds since start of the segment (see `includeStops` input for `routing.json`). Note that this is negative for non-travelled shapes before the travelled shape and can be negative for the first stop of the travelled shape.
-              relativeDeparture:
-                type: integer
-                description: Departure time from this stop in seconds since start of the segment (see `includeStops` input for `routing.json`). Note that this is negative for non-travelled shapes before the travelled shape.
-              wheelchairAccessible:
-                type: boolean
-                description: Is this stop wheelchair accessible? Missing when unknown.
             required:
               - lat
               - lng
-              - code
-            example:
-              bearing: 78
-              code: "21105-6"
-              departure: 1462331280
-              lat: 59.44123
-              lng: 24.7403
-              name: "Balti jaam 6"
-              # - arrival: 1462331520
-              #   bearing: 152
-              #   code: "10503-1"
-              #   departure: 1462331520
-              #   lat: 59.44349
-              #   lng: 24.75014
-              #   name: "Linnahall"
+              - title
+              - timezone
+
+        polygon:
+          type: string
+          description:
+            Encoded polygon of coverage area for the region, using
+            Google's Encoded Polyline Algorithm. See
+            https://developers.google.com/maps/documentation/utilities/polylinealgorithm.
+        modes:
+          type: array
+          description:
+            List of mode identifiers that are available in this region (but not necessarily everywhere in that region).
+            Look at `modes` array in `/regions` to get more details on each mode. These are also the modes that can be
+             used as input to any routing endpoint. See
+             https://developer.tripgo.com/faq/#mode-identifiers.
+          items:
+            type: string
       required:
-        - encodedWaypoints
-        - travelled
+        - id
+        - polygon
+        - cities
+        - modes
+      example:
+        id: DE_BV_Nuremberg
+        polygon: SDf9723rhkjFKHAFB
+        cities:
+          - title: Nuremberg
+            lat: 1.1
+            lng: 14.2
+            timezone: Europe/Berlin
+          - title: Erlangen
+            lat: 1.2
+            lng: 15.2
+            timezone: Europe/Berlin
+        modes:
+          - pt_pub
+          - me_car
+          - me_mot
+          - cy_bic
+          - cy_bic-s_NORIS
+          - wa_wal
 
-  SegmentReference:
-    description:
-      Segment information that's specific to a trip. The bulk of the information is in the segment template of the hash code that the segment reference is referencing.
-    properties:
-      segmentTemplateHashCode:
-        type: integer
-        description: Hash code of the referenced SegmentTemplate
-      startTime:
-        type: string
-        format: date-time
-        description: In ISO8601 format. Reflects real-time data if `realTime == true`.
-      endTime:
-        type: string
-        format: date-time
-        description: In ISO8601 format. Reflects real-time data if `realTime == true`
-      realTime:
-        type: boolean
-        description: Present and set to `true` if `startTime` and `endTime` reflect real-time data.
-      booking:
-        $ref: '#/definitions/BookingInfo'
-      serviceTripID:
-        type: string
-        description: For transit segments (required). Matches GTFS `trip_id`.
-      timetableStartTime:
-        type: string
-        format: date-time
-        description: For transit segments (optional). Time according to the timetable in ISO8601 format, if there's real-time data available.
-      stops:
-        type: integer
-        description: For transit segments (optional). Number of stops you need to stay on this segment. Does not include embarkation stop, but does include disembarkation stops. E.g., would say `1` if you get on the bus and get off at the next stop. Note here that for flights this differs from the usual counting, i.e., if this is a flight and this value is `1`, then this is indicates a direct "non-stop" flight.
-      platform:
-        type: string
-        description: For transit segments (optional). Title for embarkation platform.
-      serviceNumber:
-        type: string
-        description: For transit segments (optional). Typically GTFS `route_short_name`.
-      serviceName:
-        type: string
-        description: For transit segments (optional). Typically GTFS `route_long_name`.
-      serviceDirection:
-        type: string
-        description: For transit segments (optional). Typically GTFS `trip_headsign`.
-      serviceColor:
-        $ref: '#/definitions/RGBColor'
-      frequency:
-        type: integer
-        description: For transit segments (optional). Frequency of service in minutes if it's not running by a timetable.
-      ticketWebsiteURL:
-        type: string
-        description: For transit segments (optional). URL for travellers do get additional information about tickets.
-      bicycleAccessible:
-        description: Can you take a bicycle on this service? Missing when unknown.
-        type: boolean
-      wheelchairAccessible:
-        type: boolean
-        description: |
-          For transit segments (optional). If this segment is wheelchair accessible or not. If this field is missing, this does not mean that it is not accessible, but rather that it is unknown whether it is accessible. Only if the value is present and is `false`, does it mean that the segment is not wheelchair accessible.
-      isCancelled:
-        type: boolean
-        description: For transit segments (optional). If service has been cancelled according to real-time data.
-      realtimeVehicle:
-        $ref: '#/definitions/RealTimeVehicle'
-      realtimeVehicleAlternatives:
-        type: array
-        items:
-          $ref: '#/definitions/RealTimeVehicle'
-      alertHashCodes:
-        type: array
-        items:
-          description: Hash code of alert; get details from separate alerts dictionary
-          type: integer
-      nearbyCarParks:
-        type: array
-        items:
-          $ref: '#/definitions/NearbyCarParkLocation'
-
-    required:
-      - segmentTemplateHashCode
-      - startTime
-      - endTime
-    example:
-      startTime: 1454996190
-      endTime: 1454996616
-      segmentTemplateHashCode: 1963282048
-      serviceTripID: 605F.1433.101.60-20160306.T.8.40873943
-      stops: 3
-      platform: Platform 1
-      serviceNumber: T4
-      serviceName: T4 Eastern Suburbs & Illawarra Line
-      serviceDirection: Hurstville
-      bicycleAccesible: true
-      wheelchairAccessible: true
-
-  SegmentTemplate:
-    allOf:
-    - $ref: '#/definitions/SegmentTemplateMovingTransit'
-    - $ref: '#/definitions/SegmentTemplateMovingNonTransit'
-    - $ref: '#/definitions/SegmentTemplateStationary'
-
-  BaseSegmentTemplate:
-    description:
-      Templates for segments that are typically shared by various trips.<br/>
-      <br/>
-      The available fields heavily depend on the type of the segment. E.g., stationary segments have `location`, while others have both `from` and `to`.<br/>
-      <br/>
-      Many of the strings fields have placeholder, such as `<PLATFORM>` that should be filled in with information from the reference. [See documentation](https://developer.tripgo.com/faq/#placeholders-in-segment-templates) on those templates.
-    properties:
-      hashCode:
-        type: integer
-        description: Hash code by which this template will get referenced
-      modeInfo:
-        $ref: '#/definitions/ModeInfo'
-      modeIdentifier:
-        type: string
-        description:
-          Mode identifier. Will match input, e.g., `routing.json`'s `modes`. See
-          https://developer.tripgo.com/faq/#mode-identifiers.
-      availability:
-        type: string
-        description: Indicates availability of the segment, e.g., if it's too late to book this segment for the requested departure time, or if a scheduled service has been cancelled.
-        enum:
-          - AVAILABLE
-          - MISSED_PREBOOKING_WINDOW
-          - CANCELLED
-      action:
-        type: string
-        description: Localised single-line instruction for this segment. Can include placeholders.
-      notes:
-        type: string
-        description: Localised multi-line notes, separated by `\n`. Can include placeholders.
-      terms:
-        type: string
-        description: Localised terms provided by transport service provider.
-      visibility:
-        type: string
-        enum:
-          - "in summary"
-          - "on map"
-          - "in details"
-        description: Indication where segment should be displayed.
-      type:
-        type: string
-        enum:
-         - "stationary"
-         - "unscheduled"
-         - "scheduled"
-        description: Information what kind of segment this is
-      sources:
-        $ref: '#/definitions/ArrayOfDataSourceAttribution'
-      localCost:
-        $ref: '#/definitions/LocalCost'
-    required:
-      - hashCode
-      - availability
-      - action
-      - visibility
-      - type
-
-  BaseSegmentTemplateAnyMoving:
-    allOf:
-    - $ref: '#/definitions/BaseSegmentTemplate'
-    - type: object
+    RealtimeData:
+      description: Real Time availability.
       properties:
-        from:
-          $ref: '#/definitions/Location'
-        to:
-          $ref: '#/definitions/Location'
-        travelDirection:
-          type: integer
-          description: Angle of travel at the beginning of the segment. As true bearing. See http://en.wikipedia.org/wiki/Haversine_formula or http://www.movable-type.co.uk/scripts/latlong.html.
-          # minValue: 0
-          # maxValue: 359
-          # multipleOf: 1
-
-  SegmentTemplateMovingTransit:
-    allOf:
-    - $ref: '#/definitions/BaseSegmentTemplateAnyMoving'
-    - type: object
-      properties:
-        serviceOperator:
-          type: string
-        stopCode:
-          type: string
-          description: Start stop code
-        endStopCode:
-          type: string
-          description: End stop code
-        isContinuation:
+        alerts:
           type: boolean
-          description: |
-            Indication whether this segment is a continuation of a previous segment. This
-            would mean that the user can stay on the service from the previous segment,
-            and that the service is changing its official name and identifiers.
-        shapes:
+          description: Boolean if entity has alerts.
+        positions:
+          type: boolean
+          description: Boolean if entity has vehicle positions.
+        updates:
+          type: boolean
+          description: Boolean if entity has trip updates.
+
+    RegionDetail:
+      properties:
+        code:
+          type: string
+          description: Internal identifier for the region
+        streetBicyclePaths:
+          type: boolean
+          description: Whether the TripGo API has bike path data for this region.
+        streetWheelchairAccessibility:
+          type: boolean
+          description: Whether the TripGo API has information on wheelchair-friendliness of footpaths.
+        transitBicycleAccessibility:
+          type: boolean
+          description: Whether the TripGo API has information on whether you can take bicycles on public transport or not.
+        transitConcessionPricing:
+          type: boolean
+          description: Whether the TripGo API supports concession/student pricing for public transport for this region.
+        transitModes:
           type: array
           items:
-            $ref: '#/definitions/ServiceShape'
-        smsNumber:
-          type: string
-          description: SMS number which provides real-time information
-        smsMessage:
-          type: string
-          description: Message to send to `smsNumber` to get real-time information
-      required:
-        - serviceOperator
-
-  SegmentTemplateMovingNonTransit:
-    allOf:
-    - $ref: '#/definitions/BaseSegmentTemplateAnyMoving'
-    - type: object
-      properties:
-        durationWithoutTraffic:
-          type: integer
-          description: Duration in seconds that this trip should take if there was no traffic
-        metres:
-          type: integer
-          description: Total travel distance in metres
-        metresSafe:
-          type: integer
-          description: Total travel distance that is considered safe for this mode (see description of 'safe' in the 'streets' array)
-        metresUnsafe:
-          type: integer
-          description: Total travel distance that is considered unsafe for this mode (see description of 'safe' in the 'streets' array)
-        metresDismount:
-          type: integer
-          description: Total travel distance that it's considered necessary to push the bicycle (see description of 'dismount' in the 'streets' array)
-        streets:
-          type: array
-          items:
-            type: object
-            properties:
-              encodedPolyline:
-                type: string
-                description: |
-                  Encoded polyline of route that this service is taking.
-                  Encoded using Google's Encoded Polyline Algorithm. See https://developers.google.com/maps/documentation/utilities/polylinealgorithm.
-              safe:
-                type: boolean
-                description: Indicator for cycle paths if they are cycling-friendly (e.g., there's a bike lane) or for walking paths if they are wheelchair-friendly. Missing if unknown.
-              dismount:
-                type: boolean
-                description: Indicator for dismount sections in cycle paths (e.g., steps).
-            required:
-              - encodedPolyline
-        turn-by-turn:
-          type: string
-          description: Indicates what level of turn-by-turn directions makes sense for this segment
-          enum:
-            - CYCLING
-            - DRIVING
-            - WALKING
-
-  SegmentTemplateStationary:
-    allOf:
-    - $ref: '#/definitions/BaseSegmentTemplate'
-    - type: object
-      properties:
-        location:
-          $ref: '#/definitions/Location'
-        isParking:
-          type: boolean
-          description: If this segment is for parking a private vehicle
-        hasCarParks:
-          type: boolean
-          description: If car park information is available for this segment
-
-  Trip:
-    properties:
-      depart:
-        type: string
-        format: date-time
-        description: Departure time in ISO8601 format
-      arrive:
-        type: string
-        format: date-time
-        description: Arrival time at destination in ISO8601 format
-      segments:
-        type: array
-        items:
-          $ref: '#/definitions/SegmentReference'
-      mainSegmentHashCode:
-        type: integer
-        description:
-          Hash code for the primary segment of this trip, which can
-          be used for giving the trip a name, e.g., "Bus trip".
-      availability:
-        type: string
-        description: Indicates availability of the trip, e.g., if it's too late to book a trip for the requested departure time, or if a scheduled service has been cancelled.
-        enum:
-          - AVAILABLE
-          - MISSED_PREBOOKING_WINDOW
-          - CANCELLED
-      caloriesCost:
-        type: number
-        description: Total active calories used up for the full trip
-      carbonCost:
-        type: number
-        description: Total kg CO2 used up for the full trip
-      hassleCost:
-        type: number
-        description:
-          An imaginary dollar-equivalent quantifying the
-          inconvenience of the full trip. Should only be used for
-          sorting and not shown to the user.
-      moneyCost:
-        type: number
-        description:
-          If the trip has no `moneyCost` it does **not** mean that
-          it's free, but rather that the price is unknown. It is
-          still possible that the price for some segments is known,
-          in which case that information is attached to the segments.
-      moneyCostUSD:
-        type: number
-        description:
-          Same as `moneyCost` but converted to USD using latest
-          exchange rate. Useful for comparing trips which us different
-          currencies.
-      currencySymbol:
-        type: string
-        description: The currency symbol for the `moneyCost` value
-      weightedCost:
-        type: number
-        description:
-          An imaginary dollar-equivalent representing the total cost
-          for the trip, considering the user's preferences. Should
-          only be used for sorting and not shown to the user. Lower is better.
-      temporaryURL:
-        type: string
-        description: is a way to retrieve a recently computed trip again. If you open it in the browser, it will show the trip in our web app, but the typical use case of this is to send the "Accept" header with value “application/json” to get the trip in JSON format again. The primary use-case for this is when you say want to send the trip from one device to another, when the user is transitioning say from the phone app to viewing to continuing the trip in an in-car system. Those URLs can only be used shortly aftter computing the trip in the first place.
-      saveURL:
-        type: string
-        description: is used when the trip should stick around for longer. You hit this URL and then get back a persistent URL for the trip. This can be used to share the trip with other people, or to save it to your calendar. That URL then also either shows the trip in our web app, or in JSON format, depending on the request. If a trip was previously saved the JSON will have a shareURL with that URL in it.
-      shareURL:
-        type: string
-        description: The persistent URL for this trip (obtained after using saveURL)
-      updateURL:
-        type: string
-        description: updates a recently computed trip with real-time data. In the longevity it’s similar to temporaryURL, but it only makes sense for trips happening now anyway. Note that this is only present if we have real-time data for the trip.
-      plannedURL:
-        type: string
-        description: is used to report back to the backend which trip a user intends to take or is currently taking. The trip then gets added to an internal anonymised database, which we use in for analytics to infer general usage patterns. It is a short-cut that avoids having to send detailed information about the trip (as our backend already has the details of the trip). It is entirely optional for you to use – if you do, we should have a chat, as we can then provide a dedicated database for you, in case you want to analyse this kind of usage data.
-    required:
-      - depart
-      - arrive
-      - segments
-      - mainSegmentHashCode
-      - availability
-      - weightedCost
-      - hassleCost
-      - carbonCost
-      - caloriesCost
-
-  TripGroup:
-    properties:
-      frequency:
-        type: integer
-        description:  The trip group frequency is a rough estimate for the expected frequency of trips in the trip group.  It’s in minutes.
-      trips:
-        type: array
-        items:
-          $ref: '#/definitions/Trip'
-      sources:
-          $ref: '#/definitions/ArrayOfDataSourceAttribution'
-    required:
-      - trips
-      - sources
-
-  InputError:
-    properties:
-      missing:
-        type: array
-        items:
-          type: string
-      invalid:
-        type: array
-        items:
+            $ref: '#/components/schemas/ModeInfo'
+        modes:
           type: object
           properties:
-            name:
-              type: string
-            reason:
-              type: string
+            $genericModeIdentifier:
+              $ref: '#/components/schemas/ModeDetails'
+        transitWheelchairAccessibility:
+          type: boolean
+          description: Whether the TripGo API includes wheelchair accessibility information for public transport for this region.
+        operators:
+          type: array
+          items:
+            title: OperatorInformation
+            type: object
+            properties:
+              name:
+                type: string
+              numberOfServices:
+                type: integer
+              realTimeStatus:
+                type: string
+                enum:
+                  - IS_REAL_TIME
+                  - INCAPABLE
+              modes:
+                type: array
+                description: List of available modes, see `modes` field
+                items:
+                  type: string
+            required:
+              - name
+              - numberOfServices
+              - realTimeStatus
+              - modes
 
-  AlertsInfo:
-    properties:
-      alert:
-        $ref: "#/definitions/RealTimeAlert"
-      operators:
-        type: array
-        items:
-          type: string
-      stopCodes:
-        type: array
-        items:
-          type: string
-      routeIDs:
-        type: array
-        items:
-          type: string
-      serviceTripIDs:
-        type: array
-        items:
-          type: string
-    required:
-      - alert
+      required:
+        - code
+        - streetBicyclePaths
+        - streetWheelchairAccessibility
+        - transitBicycleAccessibility
+        - transitConcessionPricing
+        - transitModes
+        - transitWheelchairAccessibility
+        - operators
+      example:
+        code: DE_HH_Hamburg
+        streetBicyclePaths: true
+        streetWheelchairAccessibility: false
+        transitBicycleAccessibility: false
+        transitConcessionPricing: false
+        transitWheelchairAccessibility: true
+        transitModes:
+          - identifier: pt_pub_ferry
+            alt: ferry
+            localIcon: ferry
+            remoteIcon: ferry-germany-hamburg
+            color:
+              red: 0
+              blue: 211
+              green: 157
+        operators:
+        - modes:
+          - pt_pub_train
+          - pt_pub_tram
+          - pt_pub_subway
+          - pt_pub_bus
+          name: VGN
+          numberOfServices: 50056
+          realTimeStatus: INCAPABLE
+          types:
+          - alt: train
+            identifier: pt_pub_train
+            localIcon: train
+          - alt: tram
+            identifier: pt_pub_tram
+            localIcon: tram
+          - alt: subway
+            color:
+              blue: 165
+              green: 103
+              red: 0
+            identifier: pt_pub_subway
+            localIcon: subway
+            remoteIcon: subway-germany
+          - alt: bus
+            identifier: pt_pub_bus
+            localIcon: bus
+        - modes:
+          - pt_pub_bus
+          name: FlixBus
+          numberOfServices: 1597
+          realTimeStatus: INCAPABLE
+          types:
+          - alt: bus
+            identifier: pt_pub_bus
+            localIcon: bus
+        - modes:
+          - pt_pub_train
+          name: DPN
+          numberOfServices: 201
+          realTimeStatus: INCAPABLE
+          types:
+          - alt: train
+            identifier: pt_pub_train
+            localIcon: train
+        modes:
+          cy_bic-s:
+            modeInfo:
+              alt: Bike share
+              color:
+                blue: 99
+                green: 199
+                red: 30
+              identifier: cy_bic-s
+              localIcon: bicycle-share
+            specificModes:
+            - integrations:
+              - routing
+              - real_time
+              minimumLocalCostForMembership: 0
+              modeInfo:
+                alt: NorisBike
+                color:
+                  blue: 56
+                  green: 22
+                  red: 236
+                description: NorisBike
+                identifier: cy_bic-s_norisbike-nurnberg
+                localIcon: bicycle-share
+              title: NorisBike
+              url: http://www.norisbike.de
+            title: Bike share
+          me_car-p:
+            lockedModes:
+            - integrations:
+              - routing
+              modeInfo:
+                alt: BlaBlaCar
+                color:
+                  blue: 184
+                  green: 132
+                  red: 19
+                description: BlaBlaCar
+                identifier: me_car-p_BlaBlaCar
+                localIcon: car-pool
+                remoteIcon: blablacar
+              title: BlaBlaCar
+              url: https://www.blablacar.com
+            modeInfo:
+              alt: Carpooling
+              color:
+                blue: 199
+                green: 196
+                red: 46
+              identifier: me_car-p
+              localIcon: car-pool
+            title: Carpooling
+          me_car-r:
+            lockedModes:
+            - integrations:
+              - routing
+              minimumLocalCostForMembership: 0
+              modeInfo:
+                alt: Car rental
+                color:
+                  blue: 243
+                  green: 169
+                  red: 115
+                identifier: me_car-r_SwiftFleet
+                localIcon: car-share
+              title: Car rental
+            modeInfo:
+              alt: Car rental
+              color:
+                blue: 243
+                green: 169
+                red: 115
+              identifier: me_car-r
+              localIcon: car-share
+            title: Car rental
+          me_car-s:
+            lockedModes:
+            - integrations:
+              - routing
+              - real_time
+              modeInfo:
+                alt: Flinkster
+                color:
+                  blue: 27
+                  green: 13
+                  red: 252
+                description: Flinkster
+                identifier: me_car-s_FLINK
+                localIcon: car-share
+              title: Flinkster
+              url: https://www.flinkster.de
+            modeInfo:
+              alt: Car share
+              color:
+                blue: 243
+                green: 169
+                red: 115
+              identifier: me_car-s
+              localIcon: car-share
+            title: Car share
+          ps_tax:
+            lockedModes:
+            - integrations:
+              - routing
+              modeInfo:
+                alt: myDriver
+                color:
+                  blue: 0
+                  green: 0
+                  red: 0
+                description: myDriver
+                identifier: ps_tax_MYDRIVER
+                localIcon: taxi
+                remoteIcon: mydriver
+              title: myDriver
+              url: https://mydriver.com
+            modeInfo:
+              alt: Taxi
+              color:
+                blue: 62
+                green: 202
+                red: 221
+              identifier: ps_tax
+              localIcon: taxi
+            title: Taxi
+          ps_tnc:
+            modeInfo:
+              alt: Ride share
+              color:
+                blue: 243
+                green: 169
+                red: 115
+              identifier: ps_tnc
+              localIcon: tnc
+            specificModes:
+            - integrations:
+              - routing
+              - real_time
+              modeInfo:
+                alt: Skedgo
+                color:
+                  blue: 47
+                  green: 255
+                  red: 47
+                description: Skedgo
+                identifier: ps_tnc_ODB
+                localIcon: tnc
+                remoteIcon: skedgo
+              title: Skedgo
+              url: https://www.skedgo.com
+            title: Ride share
+          pt_pub:
+            modeInfo:
+              alt: Public transport
+              color:
+                blue: 104
+                green: 197
+                red: 45
+              identifier: pt_pub
+              localIcon: public
+            specificModes:
+            - modeInfo:
+                alt: train
+                identifier: pt_pub_train
+                localIcon: train
+              operators:
+              - VGN
+              - DPN
+            - modeInfo:
+                alt: subway
+                color:
+                  blue: 165
+                  green: 103
+                  red: 0
+                identifier: pt_pub_subway
+                localIcon: subway
+                remoteIcon: subway-germany
+              operators:
+              - VGN
+            - modeInfo:
+                alt: tram
+                identifier: pt_pub_tram
+                localIcon: tram
+              operators:
+              - VGN
+            - modeInfo:
+                alt: bus
+                identifier: pt_pub_bus
+                localIcon: bus
+              operators:
+              - VGN
+              - FlixBus
+            title: Public transport
 
-  SavedTripUrl:
-    properties:
-      token:
-        description: unique identifier for the trip
-        type: string
-      url:
-        description: url to retrive the trip
-        type: string
-      updateUrl:
-        description: url to update the trip, updates a recently computed trip with real-time data. Note that this is only present if we have real-time data for the trip.
-        type: string
-    required:
-      - alert
+    Service:
+      description: Details of public transport service
+      properties:
+        operator:
+          type: string
+        serviceTripID:
+          type: string
+          description: Internal identifier of the service. Related to `trip_id` in GTFS.
+        serviceName:
+          type: string
+          description: Long name of the service. Related to `route_long_name` in GTFS.
+        serviceNumber:
+          type: string
+          description: Short name of the service. Related to `route_short_name` in GTFS.
+        serviceDirection:
+          type: string
+          description: Head sign of the service, indicating its direction. Related to `head_sign` in GTFS.
+        serviceColor:
+          $ref: '#/components/schemas/RGBColor'
+        bicycleAccessible:
+          description: Can you take a bicycle on this service? Missing when unknown.
+          type: boolean
+        wheelchairAccessible:
+          type: boolean
+          description: |
+            If this service is wheelchair accessible or not. If this field is missing, this does not mean that it is not accessible, but rather that it is unknown whether it is accessible. Only if the value is present and is `false`, does it mean that the service is not wheelchair accessible.
+      required:
+        - operator
+        - serviceTripID
+      example:
+        operator: Sydney Buses
+        serviceDirection: CITY Circular Quay
+        serviceName: Maroubra Beach - Circular Quay
+        serviceNumber: "377"
+        serviceTripID: "142496466_20160307_11954"
+
+    ServiceDeparture:
+      description: Details of a service departing at a particular time
+      allOf:
+      - $ref: '#/components/schemas/Service'
+      - type: object
+        properties:
+          startTime:
+            type: string
+            format: date-time
+            description: Departure of the service  as per timetable in ISO8601 format.
+          modeInfo:
+            $ref: '#/components/schemas/ModeInfo'
+          realTimeStatus:
+            type: string
+            description: Indicator for whether real-time information is available for this service. Note that even if this says the service is real-time, this does not mean the `startTime` is real-time.
+            enum:
+              - IS_REAL_TIME
+              - CAPABLE
+              - INCAPABLE
+          realtimeVehicle:
+            # description: The vehicle for this specific service.
+            $ref: '#/components/schemas/RealTimeVehicle'
+          realtimeAlternativeVehicle:
+            description: Alternative vehicles for the same route, but not necessarily, this specific service.
+            type: array
+            items:
+              $ref: '#/components/schemas/RealTimeVehicle'
+          alerts:
+            description: Service alerts / disruption information that affect this service.
+            type: array
+            items:
+              $ref: '#/components/schemas/RealTimeAlert'
+          bicycleAccessible:
+            description: Can you take a bicycle on this service? Missing when unknown.
+            type: boolean
+          wheelchairAccessible:
+            description: Is this service wheelchair accessible? Missing when unknown.
+            type: boolean
+        required:
+          - startTime
+          - modeInfo
+        example:
+          startTime: 1458708255
+          modeInfo:
+            alt: bus
+            identifier: pt_pub_bus
+            localIcon: bus
+          operator: Sydney Buses
+          realTimeStatus: CAPABLE
+          serviceDirection: CITY Circular Quay
+          serviceName: Maroubra Beach - Circular Quay
+          serviceNumber: "377"
+          serviceTripID: "142496466_20160307_11954"
+          bicycleAccessible: false
+          wheelchairAccessible: true
+
+    ServiceShape:
+      description:
+        Details of the specific route that a service takes.
+
+        Which stops are included in the `stops` list depends on the `travelled` status of the segment. For travelled segments, all stops including embarkation and disembarkation are included. Non-travelled segments however exclude the embarkation and disembarkation (as those would have been part of the travelled shape already).
+
+        If there's a train from A to H and the travelled part is C to F, which changes its service identifier at E, we end up with 4 segments. 1) non-travelled with `A+B`, 2) travelled with `C+D`, 3) travelled with `E+F`, 4) non-travelled with `G+H`.
+
+      allOf:
+      - $ref: '#/components/schemas/Service'
+      - type: object
+        properties:
+          encodedWaypoints:
+            type: string
+            description: |
+              Encoded polyline of route that this service is taking.
+              Encoded using Google's Encoded Polyline Algorithm. See https://developers.google.com/maps/documentation/utilities/polylinealgorithm.
+          travelled:
+            type: boolean
+            description: |
+              Whether this shape is travelled for the provided input. A transit segment of a trip can include shapes which are not travelled, to indicate where the service was coming from before the embarkation stop and where it's going to after the disembarkation stop.
+          stops:
+            type: array
+            items:
+              type: object
+              properties:
+                lat:
+                  type: number
+                lng:
+                  type: number
+                code:
+                  type: string
+                  description: The stop's code (matches GTFS `stopCode`)
+                name:
+                  type: string
+                  description: Name of the stop (might include platform)
+                shortName:
+                  type: string
+                  description: Platform information of the stop. Might double-up with `name`.
+                bearing:
+                  type: integer
+                  description: Angle of travel from this stop to the next. As true bearing. See http://en.wikipedia.org/wiki/Haversine_formula or http://www.movable-type.co.uk/scripts/latlong.html.
+                arrival:
+                  type: string
+                  format: date-time
+                  description: Arrival time at this stop in ISO8601 format.
+                departure:
+                  type: string
+                  format: date-time
+                  description: Departure time from this stop in ISO8601 format.
+                relativeArrival:
+                  type: integer
+                  description: Arrival time at this stop in seconds since start of the segment (see `includeStops` input for `routing.json`). Note that this is negative for non-travelled shapes before the travelled shape and can be negative for the first stop of the travelled shape.
+                relativeDeparture:
+                  type: integer
+                  description: Departure time from this stop in seconds since start of the segment (see `includeStops` input for `routing.json`). Note that this is negative for non-travelled shapes before the travelled shape.
+                wheelchairAccessible:
+                  type: boolean
+                  description: Is this stop wheelchair accessible? Missing when unknown.
+              required:
+                - lat
+                - lng
+                - code
+              example:
+                bearing: 78
+                code: "21105-6"
+                departure: 1462331280
+                lat: 59.44123
+                lng: 24.7403
+                name: "Balti jaam 6"
+                # - arrival: 1462331520
+                #   bearing: 152
+                #   code: "10503-1"
+                #   departure: 1462331520
+                #   lat: 59.44349
+                #   lng: 24.75014
+                #   name: "Linnahall"
+        required:
+          - encodedWaypoints
+          - travelled
+
+    SegmentReference:
+      description:
+        Segment information that's specific to a trip. The bulk of the information is in the segment template of the hash code that the segment reference is referencing.
+      properties:
+        segmentTemplateHashCode:
+          type: integer
+          description: Hash code of the referenced SegmentTemplate
+        startTime:
+          type: string
+          format: date-time
+          description: In ISO8601 format. Reflects real-time data if `realTime == true`.
+        endTime:
+          type: string
+          format: date-time
+          description: In ISO8601 format. Reflects real-time data if `realTime == true`
+        realTime:
+          type: boolean
+          description: Present and set to `true` if `startTime` and `endTime` reflect real-time data.
+        booking:
+          $ref: '#/components/schemas/BookingInfo'
+        serviceTripID:
+          type: string
+          description: For transit segments (required). Matches GTFS `trip_id`.
+        timetableStartTime:
+          type: string
+          format: date-time
+          description: For transit segments (optional). Time according to the timetable in ISO8601 format, if there's real-time data available.
+        stops:
+          type: integer
+          description: For transit segments (optional). Number of stops you need to stay on this segment. Does not include embarkation stop, but does include disembarkation stops. E.g., would say `1` if you get on the bus and get off at the next stop. Note here that for flights this differs from the usual counting, i.e., if this is a flight and this value is `1`, then this is indicates a direct "non-stop" flight.
+        platform:
+          type: string
+          description: For transit segments (optional). Title for embarkation platform.
+        serviceNumber:
+          type: string
+          description: For transit segments (optional). Typically GTFS `route_short_name`.
+        serviceName:
+          type: string
+          description: For transit segments (optional). Typically GTFS `route_long_name`.
+        serviceDirection:
+          type: string
+          description: For transit segments (optional). Typically GTFS `trip_headsign`.
+        serviceColor:
+          $ref: '#/components/schemas/RGBColor'
+        frequency:
+          type: integer
+          description: For transit segments (optional). Frequency of service in minutes if it's not running by a timetable.
+        ticketWebsiteURL:
+          type: string
+          description: For transit segments (optional). URL for travellers do get additional information about tickets.
+        bicycleAccessible:
+          description: Can you take a bicycle on this service? Missing when unknown.
+          type: boolean
+        wheelchairAccessible:
+          type: boolean
+          description: |
+            For transit segments (optional). If this segment is wheelchair accessible or not. If this field is missing, this does not mean that it is not accessible, but rather that it is unknown whether it is accessible. Only if the value is present and is `false`, does it mean that the segment is not wheelchair accessible.
+        isCancelled:
+          type: boolean
+          description: For transit segments (optional). If service has been cancelled according to real-time data.
+        realtimeVehicle:
+          $ref: '#/components/schemas/RealTimeVehicle'
+        realtimeVehicleAlternatives:
+          type: array
+          items:
+            $ref: '#/components/schemas/RealTimeVehicle'
+        alertHashCodes:
+          type: array
+          items:
+            description: Hash code of alert; get details from separate alerts dictionary
+            type: integer
+        nearbyCarParks:
+          type: array
+          items:
+            $ref: '#/components/schemas/NearbyCarParkLocation'
+
+      required:
+        - segmentTemplateHashCode
+        - startTime
+        - endTime
+      example:
+        startTime: 1454996190
+        endTime: 1454996616
+        segmentTemplateHashCode: 1963282048
+        serviceTripID: 605F.1433.101.60-20160306.T.8.40873943
+        stops: 3
+        platform: Platform 1
+        serviceNumber: T4
+        serviceName: T4 Eastern Suburbs & Illawarra Line
+        serviceDirection: Hurstville
+        bicycleAccesible: true
+        wheelchairAccessible: true
+
+    SegmentTemplate:
+      allOf:
+      - $ref: '#/components/schemas/SegmentTemplateMovingTransit'
+      - $ref: '#/components/schemas/SegmentTemplateMovingNonTransit'
+      - $ref: '#/components/schemas/SegmentTemplateStationary'
+
+    BaseSegmentTemplate:
+      description:
+        Templates for segments that are typically shared by various trips.<br/>
+        <br/>
+        The available fields heavily depend on the type of the segment. E.g., stationary segments have `location`, while others have both `from` and `to`.<br/>
+        <br/>
+        Many of the strings fields have placeholder, such as `<PLATFORM>` that should be filled in with information from the reference. [See documentation](https://developer.tripgo.com/faq/#placeholders-in-segment-templates) on those templates.
+      properties:
+        hashCode:
+          type: integer
+          description: Hash code by which this template will get referenced
+        modeInfo:
+          $ref: '#/components/schemas/ModeInfo'
+        modeIdentifier:
+          type: string
+          description:
+            Mode identifier. Will match input, e.g., `routing.json`'s `modes`. See
+            https://developer.tripgo.com/faq/#mode-identifiers.
+        availability:
+          type: string
+          description: Indicates availability of the segment, e.g., if it's too late to book this segment for the requested departure time, or if a scheduled service has been cancelled.
+          enum:
+            - AVAILABLE
+            - MISSED_PREBOOKING_WINDOW
+            - CANCELLED
+        action:
+          type: string
+          description: Localised single-line instruction for this segment. Can include placeholders.
+        notes:
+          type: string
+          description: Localised multi-line notes, separated by `\n`. Can include placeholders.
+        terms:
+          type: string
+          description: Localised terms provided by transport service provider.
+        visibility:
+          type: string
+          enum:
+            - "in summary"
+            - "on map"
+            - "in details"
+          description: Indication where segment should be displayed.
+        type:
+          type: string
+          enum:
+           - "stationary"
+           - "unscheduled"
+           - "scheduled"
+          description: Information what kind of segment this is
+        sources:
+          $ref: '#/components/schemas/ArrayOfDataSourceAttribution'
+        localCost:
+          $ref: '#/components/schemas/LocalCost'
+      required:
+        - hashCode
+        - availability
+        - action
+        - visibility
+        - type
+
+    BaseSegmentTemplateAnyMoving:
+      allOf:
+      - $ref: '#/components/schemas/BaseSegmentTemplate'
+      - type: object
+        properties:
+          from:
+            $ref: '#/components/schemas/Location'
+          to:
+            $ref: '#/components/schemas/Location'
+          travelDirection:
+            type: integer
+            description: Angle of travel at the beginning of the segment. As true bearing. See http://en.wikipedia.org/wiki/Haversine_formula or http://www.movable-type.co.uk/scripts/latlong.html.
+            # minValue: 0
+            # maxValue: 359
+            # multipleOf: 1
+
+    SegmentTemplateMovingTransit:
+      allOf:
+      - $ref: '#/components/schemas/BaseSegmentTemplateAnyMoving'
+      - type: object
+        properties:
+          serviceOperator:
+            type: string
+          stopCode:
+            type: string
+            description: Start stop code
+          endStopCode:
+            type: string
+            description: End stop code
+          isContinuation:
+            type: boolean
+            description: |
+              Indication whether this segment is a continuation of a previous segment. This
+              would mean that the user can stay on the service from the previous segment,
+              and that the service is changing its official name and identifiers.
+          shapes:
+            type: array
+            items:
+              $ref: '#/components/schemas/ServiceShape'
+          smsNumber:
+            type: string
+            description: SMS number which provides real-time information
+          smsMessage:
+            type: string
+            description: Message to send to `smsNumber` to get real-time information
+        required:
+          - serviceOperator
+
+    SegmentTemplateMovingNonTransit:
+      allOf:
+      - $ref: '#/components/schemas/BaseSegmentTemplateAnyMoving'
+      - type: object
+        properties:
+          durationWithoutTraffic:
+            type: integer
+            description: Duration in seconds that this trip should take if there was no traffic
+          metres:
+            type: integer
+            description: Total travel distance in metres
+          metresSafe:
+            type: integer
+            description: Total travel distance that is considered safe for this mode (see description of 'safe' in the 'streets' array)
+          metresUnsafe:
+            type: integer
+            description: Total travel distance that is considered unsafe for this mode (see description of 'safe' in the 'streets' array)
+          metresDismount:
+            type: integer
+            description: Total travel distance that it's considered necessary to push the bicycle (see description of 'dismount' in the 'streets' array)
+          streets:
+            type: array
+            items:
+              type: object
+              properties:
+                encodedPolyline:
+                  type: string
+                  description: |
+                    Encoded polyline of route that this service is taking.
+                    Encoded using Google's Encoded Polyline Algorithm. See https://developers.google.com/maps/documentation/utilities/polylinealgorithm.
+                safe:
+                  type: boolean
+                  description: Indicator for cycle paths if they are cycling-friendly (e.g., there's a bike lane) or for walking paths if they are wheelchair-friendly. Missing if unknown.
+                dismount:
+                  type: boolean
+                  description: Indicator for dismount sections in cycle paths (e.g., steps).
+              required:
+                - encodedPolyline
+          turn-by-turn:
+            type: string
+            description: Indicates what level of turn-by-turn directions makes sense for this segment
+            enum:
+              - CYCLING
+              - DRIVING
+              - WALKING
+
+    SegmentTemplateStationary:
+      allOf:
+      - $ref: '#/components/schemas/BaseSegmentTemplate'
+      - type: object
+        properties:
+          location:
+            $ref: '#/components/schemas/Location'
+          isParking:
+            type: boolean
+            description: If this segment is for parking a private vehicle
+          hasCarParks:
+            type: boolean
+            description: If car park information is available for this segment
+
+    Trip:
+      properties:
+        depart:
+          type: string
+          format: date-time
+          description: Departure time in ISO8601 format
+        arrive:
+          type: string
+          format: date-time
+          description: Arrival time at destination in ISO8601 format
+        segments:
+          type: array
+          items:
+            $ref: '#/components/schemas/SegmentReference'
+        mainSegmentHashCode:
+          type: integer
+          description:
+            Hash code for the primary segment of this trip, which can
+            be used for giving the trip a name, e.g., "Bus trip".
+        availability:
+          type: string
+          description: Indicates availability of the trip, e.g., if it's too late to book a trip for the requested departure time, or if a scheduled service has been cancelled.
+          enum:
+            - AVAILABLE
+            - MISSED_PREBOOKING_WINDOW
+            - CANCELLED
+        caloriesCost:
+          type: number
+          description: Total active calories used up for the full trip
+        carbonCost:
+          type: number
+          description: Total kg CO2 used up for the full trip
+        hassleCost:
+          type: number
+          description:
+            An imaginary dollar-equivalent quantifying the
+            inconvenience of the full trip. Should only be used for
+            sorting and not shown to the user.
+        moneyCost:
+          type: number
+          description:
+            If the trip has no `moneyCost` it does **not** mean that
+            it's free, but rather that the price is unknown. It is
+            still possible that the price for some segments is known,
+            in which case that information is attached to the segments.
+        moneyCostUSD:
+          type: number
+          description:
+            Same as `moneyCost` but converted to USD using latest
+            exchange rate. Useful for comparing trips which us different
+            currencies.
+        currencySymbol:
+          type: string
+          description: The currency symbol for the `moneyCost` value
+        weightedCost:
+          type: number
+          description:
+            An imaginary dollar-equivalent representing the total cost
+            for the trip, considering the user's preferences. Should
+            only be used for sorting and not shown to the user. Lower is better.
+        temporaryURL:
+          type: string
+          description: is a way to retrieve a recently computed trip again. If you open it in the browser, it will show the trip in our web app, but the typical use case of this is to send the "Accept" header with value “application/json” to get the trip in JSON format again. The primary use-case for this is when you say want to send the trip from one device to another, when the user is transitioning say from the phone app to viewing to continuing the trip in an in-car system. Those URLs can only be used shortly aftter computing the trip in the first place.
+        saveURL:
+          type: string
+          description: is used when the trip should stick around for longer. You hit this URL and then get back a persistent URL for the trip. This can be used to share the trip with other people, or to save it to your calendar. That URL then also either shows the trip in our web app, or in JSON format, depending on the request. If a trip was previously saved the JSON will have a shareURL with that URL in it.
+        shareURL:
+          type: string
+          description: The persistent URL for this trip (obtained after using saveURL)
+        updateURL:
+          type: string
+          description: updates a recently computed trip with real-time data. In the longevity it’s similar to temporaryURL, but it only makes sense for trips happening now anyway. Note that this is only present if we have real-time data for the trip.
+        plannedURL:
+          type: string
+          description: is used to report back to the backend which trip a user intends to take or is currently taking. The trip then gets added to an internal anonymised database, which we use in for analytics to infer general usage patterns. It is a short-cut that avoids having to send detailed information about the trip (as our backend already has the details of the trip). It is entirely optional for you to use – if you do, we should have a chat, as we can then provide a dedicated database for you, in case you want to analyse this kind of usage data.
+      required:
+        - depart
+        - arrive
+        - segments
+        - mainSegmentHashCode
+        - availability
+        - weightedCost
+        - hassleCost
+        - carbonCost
+        - caloriesCost
+
+    TripGroup:
+      properties:
+        frequency:
+          type: integer
+          description:  The trip group frequency is a rough estimate for the expected frequency of trips in the trip group.  It’s in minutes.
+        trips:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trip'
+        sources:
+            $ref: '#/components/schemas/ArrayOfDataSourceAttribution'
+      required:
+        - trips
+        - sources
+
+    AlertsInfo:
+      properties:
+        alert:
+          $ref: "#/components/schemas/RealTimeAlert"
+        operators:
+          type: array
+          items:
+            type: string
+        stopCodes:
+          type: array
+          items:
+            type: string
+        routeIDs:
+          type: array
+          items:
+            type: string
+        serviceTripIDs:
+          type: array
+          items:
+            type: string
+      required:
+        - alert
+
+    SavedTripUrl:
+      properties:
+        token:
+          description: unique identifier for the trip
+          type: string
+        url:
+          description: url to retrive the trip
+          type: string
+        updateUrl:
+          description: url to update the trip, updates a recently computed trip with real-time data. Note that this is only present if we have real-time data for the trip.
+          type: string
+      required:
+        - alert
