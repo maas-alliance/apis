@@ -70,7 +70,6 @@ paths:
           schema:
             $ref: '#/definitions/Region'
 
-
   /regions/{id}/details:
     get:
       tags: 
@@ -492,11 +491,6 @@ paths:
           description:
             String with `(%f,%f,%f,%f)` format specifying the user's weighting profile. In order, the weights represent price, environmental impact, duration, and convenience. Each value should be between 0.1 and 2.0. 0.1 means the related cost is unimportant and 2.0 means it's very important to the user. This impacts both the routing results and each trip's `weightedScore` value.
           default: (1, 1, 1, 1)
-        - name: ir
-          type: boolean
-          in: query
-          description: Boolean if interregional results, i.e., between regions as defined as in `/regions`, should be returned.
-          default: false
         - name: conc
           description: If concession pricing should be use for public transport
           type: boolean
@@ -1143,17 +1137,6 @@ definitions:
             description: This is a map/dictionary with multiple items of this type. Each key is a mode identifier. See https://developer.tripgo.com/faq/#mode-identifiers.
             $ref: '#/definitions/ModeIdentifier'
 
-  RegionInfoInput:
-    type: object
-    properties:
-      regionID:
-        type: string
-        description: Region id from `/regions`
-    required:
-      - region
-    example:
-      regionID: DE_HH_Hamburg
-
   RegionInfoResponse:
     properties:
       regions:
@@ -1299,16 +1282,6 @@ definitions:
     required:
       - lat
       - lng
-
-  CoordinateWithID:
-    allOf:
-    - $ref: '#/definitions/Coordinate'
-    - type: object
-      properties:
-        id:
-          type: string
-      required:
-        - id
 
   Location:
     allOf:
