@@ -412,117 +412,27 @@ paths:
           schema:
             $ref: '#/definitions/InputError'
 
-  /routing.json:
-    get:
+  /routing:
+    post:
       tags:
         - Trip Planning
       summary: A-to-B trips
       description:
         Calculates door-to-door trips for the specified mode(s).
       parameters:
-        - name: from
-          in: query
-          type: string
-          description: Origin coordinate as `(lat,lng)"address"` string (the `"address"` part is optional).
+        - name: input
+          in: body
           required: true
-        - name: to
-          in: query
-          type: string
-          description: Destination coordinate as `(lat,lng)"address"` string (the `"address"` part is optional).
-          required: true
-        - name: departAfter
-          in: query
-          type: string
-          format: date-time
-          description: Departure time in ISO8601 format. Either this or `arriveBefore` need to be specified. You can also specify both to find trips that minimise duration within that window.
-        - name: arriveBefore
-          in: query
-          type: string
-          format: date-time
-          description: Arrival time in ISO8601 format. Either this or `departAfter` need to be specified. You can also specify both to find trips that minimise duration within that window.
-        - name: modes
-          type: array
-          in: query
-          items:
-            type: string
-          description:
-            Modes for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_tax_FLITWAYS` exactly as returned by `/regions`. If multiple modes are specified only trips which mix at least two of these modes are returned. [Details of single-modal and multi-modal queries are on our developer site](https://developer.tripgo.com/faq/#single-modal-vs-multi-modal-routing).
-          required: true
-        - name: avoidModes
-          type: array
-          in: query
-          items:
-            type: string
-          description:
-            Public transport modes to avoid. Identifier strings like `pt_pub_bus` exactly as returend by `regionInfo.json`. If multiple modes are specified, all will be avoided. Results can still use these modes if no other public transport mode is suitable.
-        - name: avoidStops
-          type: array
-          in: query
-          items:
-            type: string
-          description:
-            Public stops to avoid. Stop codes usually coming from the `excludedStops` field in `alerts` field. If a stop code corresponds to a "parent" station, it will avoid all "children" stops.
-        - name: tt
-          type: integer
-          in: query
-          description: Preferred minimum transfer time in minutes.
-          default: 3
-          minimum: 0
-          multipleOf: 1
-        - name: ws
-          type: integer
-          in: query
-          description: Walking speed. 0 slow (2.5 km/h), 1 medium (4 km/h), 2 fast (4.5 km/h).
-          default: 1
-          minimum: 0
-          maximum: 2
-          multipleOf: 1
-        - name: cs
-          type: integer
-          in: query
-          description: Cycling speed. 0 slow (12 km/h), 1 medium (18 km/h), 2 fast (25 km/h).
-          default: 1
-          minimum: 0
-          maximum: 2
-          multipleOf: 1
-        - name: wp
-          type: string
-          in: query
-          description:
-            String with `(%f,%f,%f,%f)` format specifying the user's weighting profile. In order, the weights represent price, environmental impact, duration, and convenience. Each value should be between 0.1 and 2.0. 0.1 means the related cost is unimportant and 2.0 means it's very important to the user. This impacts both the routing results and each trip's `weightedScore` value.
-          default: (1, 1, 1, 1)
-        - name: conc
-          description: If concession pricing should be use for public transport
-          type: boolean
-          in: query
-          default: false
-        - name: wheelchair
-          description: Boolean if routing results should include wheelchair information (note, that this will change 'walking' instruction to 'rolling' instruction).
-          type: boolean
-          in: query
-          default: false
-        - name: includeStops
-          type: boolean
-          in: query
-          description: Boolean if segment templates for public transport should include the list of all stops along the way, including *relative* times (i.e., seconds since start of the segment)
-          default: false
-        - name: 2wirc
-          type: boolean
-          in: query
-          description: Boolean to determine whether two-way-hire vehicles, such as pod-based car-share, should automatically add the cost of returning the vehicle to its pick-up location. Set to false if the cost of the trip should only include the cost that's attributed to this trip and ignore the unavoidable additional cost for returning the vehicle to its pick-up location.
-          default: true
-        - name: fb
-          type: boolean
-          in: query
-          description: _f_olding _b_icycle, boolean to determine whether the bicycle mode should be treated as a folding/portable bicycle. When this is set to `true`, the bicycle will be taken on any public transport mode, and will be taken all the way to the destination, rather than locking it up along the way. (Only applies if `modes` includes `cy_bic`.)
-          default: false
+          schema:
+            $ref: '#/definitions/RoutingInput'
+
       responses:
         200:
           description: Successful response. Can include many trips.
           schema:
             $ref: '#/definitions/RoutingResponse'
 
-  /waypoint.json:
+  /waypoint:
     post:
       tags:
         - Trip Planning
@@ -1145,6 +1055,59 @@ definitions:
         items:
           $ref: '#/definitions/RegionDetail'
 
+  RoutingInput:
+    properties:
+      config:
+        $ref: '#/definitions/ConfigInput'
+      from:
+        type: string
+        description: Origin coordinate as `(lat,lng)"address"` string (the `"address"` part is optional).
+      to:
+        type: string
+        description: Destination coordinate as `(lat,lng)"address"` string (the `"address"` part is optional).
+      departAfter:
+        type: string
+        format: date-time
+        description: Departure time in ISO8601 format. Either this or `arriveBefore` need to be specified. You can also specify both to find trips that minimise duration within that window.
+      arriveBefore:
+        type: string
+        format: date-time
+        description: Arrival time in ISO8601 format. Either this or `departAfter` need to be specified. You can also specify both to find trips that minimise duration within that window.
+      modes:
+        type: array
+        items:
+          type: string
+        description:
+          Modes for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_tax_FLITWAYS` exactly as returned by `/regions`. If multiple modes are specified only trips which mix at least two of these modes are returned. [Details of single-modal and multi-modal queries are on our developer site](https://developer.tripgo.com/faq/#single-modal-vs-multi-modal-routing).
+      avoidModes:
+        type: array
+        items:
+          type: string
+        description:
+          Public transport modes to avoid. Identifier strings like `pt_pub_bus` exactly as returend by `regionInfo.json`. If multiple modes are specified, all will be avoided. Results can still use these modes if no other public transport mode is suitable.
+      avoidStops:
+        type: array
+        items:
+          type: string
+        description:
+          Public stops to avoid. Stop codes usually coming from the `excludedStops` field in `alerts` field. If a stop code corresponds to a "parent" station, it will avoid all "children" stops.
+      includeStops:
+        type: boolean
+        description: Boolean if segment templates for public transport should include the list of all stops along the way, including *relative* times (i.e., seconds since start of the segment)
+        default: false
+      2wirc:
+        type: boolean
+        description: Boolean to determine whether two-way-hire vehicles, such as pod-based car-share, should automatically add the cost of returning the vehicle to its pick-up location. Set to false if the cost of the trip should only include the cost that's attributed to this trip and ignore the unavoidable additional cost for returning the vehicle to its pick-up location.
+        default: true
+      fb:
+        type: boolean
+        description: _f_olding _b_icycle, boolean to determine whether the bicycle mode should be treated as a folding/portable bicycle. When this is set to `true`, the bicycle will be taken on any public transport mode, and will be taken all the way to the destination, rather than locking it up along the way. (Only applies if `modes` includes `cy_bic`.)
+        default: false
+    required:
+      - from
+      - to
+      - modes
+
   RoutingResponse:
     properties:
       groups:
@@ -1182,14 +1145,14 @@ definitions:
         multipleOf: 1
       ws:
         type: integer
-        description: Walking speed. 0 slow, 1 medium, 2 fast.
+        description: Walking speed. 0 slow (2.5 km/h), 1 medium (4 km/h), 2 fast (4.5 km/h).
         default: 1
         minimum: 0
         maximum: 2
         multipleOf: 1
       cs:
         type: integer
-        description: Cycling speed. 0 slow, 1 medium, 2 fast.
+        description: Cycling speed. 0 slow (12 km/h), 1 medium (18 km/h), 2 fast (25 km/h).
         default: 1
         minimum: 0
         maximum: 2
@@ -1205,7 +1168,7 @@ definitions:
       wp:
         type: string
         description:
-          String with `(%f,%f,%f,%f)` format specifying the user's weighting profile. In order, the weights represent price, environmental impact, duration, and convenience. Each value should be between 0.1 and 2.0. 0.1 means the related cost is unimportant and 2.0 means it's very important to the user. This impacts both the routing results and each trip's `weightedScore` value.
+          String with `(%f,%f,%f,%f)` format specifying the user's weighting profile. In order, the weights represent price, environmental impact, duration, and convenience. Each value should be between 0.1 and 2.0. 0.1 means the related cost is unimportant and 2.0 means it's very important to the user. This impacts both the routing results and each trip's `weightedCost` value.
         default: (1, 1, 1, 1)
 
   TripInputPattern:
@@ -2898,12 +2861,12 @@ definitions:
       currencySymbol:
         type: string
         description: The currency symbol for the `moneyCost` value
-      weightedScore:
+      weightedCost:
         type: number
         description:
-          An imaginary dollar-equivalent representing the total score
+          An imaginary dollar-equivalent representing the total cost
           for the trip, considering the user's preferences. Should
-          only be used for sorting and not shown to the user.
+          only be used for sorting and not shown to the user. Lower is better.
       temporaryURL:
         type: string
         description: is a way to retrieve a recently computed trip again. If you open it in the browser, it will show the trip in our web app, but the typical use case of this is to send the "Accept" header with value “application/json” to get the trip in JSON format again. The primary use-case for this is when you say want to send the trip from one device to another, when the user is transitioning say from the phone app to viewing to continuing the trip in an in-car system. Those URLs can only be used shortly aftter computing the trip in the first place.
@@ -2925,7 +2888,7 @@ definitions:
       - segments
       - mainSegmentHashCode
       - availability
-      - weightedScore
+      - weightedCost
       - hassleCost
       - carbonCost
       - caloriesCost
