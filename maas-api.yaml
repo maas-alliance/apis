@@ -279,7 +279,7 @@ paths:
                     description: Stop code.
                   description: Used stops set for this route.
                 routeColor:
-                  $ref: '#/definitions/Color'
+                  $ref: '#/definitions/RGBColor'
                 realTime:
                   $ref: '#/definitions/RealtimeData'
             example:
@@ -435,12 +435,12 @@ paths:
           in: query
           type: string
           format: date-time
-          description: Departure time in ISO 8601 format. Either this or `arriveBefore` need to be specified. You can also specify both to find trips that minimise duration within that window.
+          description: Departure time in ISO8601 format. Either this or `arriveBefore` need to be specified. You can also specify both to find trips that minimise duration within that window.
         - name: arriveBefore
           in: query
           type: string
           format: date-time
-          description: Arrival time in ISO 8601 format. Either this or `departAfter` need to be specified. You can also specify both to find trips that minimise duration within that window.
+          description: Arrival time in ISO8601 format. Either this or `departAfter` need to be specified. You can also specify both to find trips that minimise duration within that window.
         - name: modes
           type: array
           in: query
@@ -873,7 +873,7 @@ paths:
               timeStamp:
                 type: string
                 format: date-time
-                description: Earlest time to include in timetable, in ISO 8601 format. Default value is current time.
+                description: Earlest time to include in timetable, in ISO8601 format. Default value is current time.
               limit:
                 type: integer
                 description: Number of services to include in timetable.
@@ -960,7 +960,7 @@ paths:
                     startTime:
                       type: string
                       format: date-time
-                      description: Departure time at `startStopCode` in ISO 8601 format. The parameter is optional, but highly recommended. If you don't get real-time data, add this parameter.
+                      description: Departure time at `startStopCode` in ISO8601 format. The parameter is optional, but highly recommended. If you don't get real-time data, add this parameter.
                     endStopCode:
                       type: string
                   required:
@@ -997,11 +997,11 @@ paths:
                     startTime:
                       type: string
                       format: date-time
-                      description: Predicted departure time based on real-time information in ISO 8601 format.
+                      description: Predicted departure time based on real-time information in ISO8601 format.
                     lastUpdate:
                       type: string
                       format: date-time
-                      description: Time the departure/arrival time prediction was made in ISO 8601 format.
+                      description: Time the departure/arrival time prediction was made in ISO8601 format.
                     realtimeVehicle:
                       # description: The vehicle for this specific service.
                       $ref: '#/definitions/RealTimeVehicle'
@@ -1046,7 +1046,7 @@ paths:
           in: query
           type: string
           format: date-time
-          description: Departure time of service in ISO 8601 format.
+          description: Departure time of service in ISO8601 format.
           required: true
         - name: encode
           in: query
@@ -1239,7 +1239,7 @@ definitions:
       time:
         type: string
         format: date-time
-        description: Time to start at this waypoint in ISO 8601 format.
+        description: Time to start at this waypoint in ISO8601 format.
     required:
       - lat
       - lng
@@ -1269,7 +1269,7 @@ definitions:
     required:
       - title
 
-  Color:
+  RGBColor:
     properties:
       red:
         type: integer
@@ -1385,7 +1385,7 @@ definitions:
       lastUpdated:
         type: string
         format: date-time
-        description: Timestamp `availableBikes` got recorded in ISO 8601 format
+        description: Timestamp `availableBikes` got recorded in ISO8601 format
       source:
         $ref: '#/definitions/DataSourceAttribution'
     required:
@@ -1424,7 +1424,7 @@ definitions:
       lastUpdated:
         type: string
         format: date-time
-        description: Timestamp `availableSpaces` got recorded in ISO 8601 format
+        description: Timestamp `availableSpaces` got recorded in ISO8601 format
       onStreetParking:
         type: boolean
       encodedParkingArea:
@@ -1580,7 +1580,7 @@ definitions:
       remoteDarkIcon:
         type: string
       color:
-        $ref: '#/definitions/Color'
+        $ref: '#/definitions/RGBColor'
     required:
       - name
 
@@ -1680,7 +1680,7 @@ definitions:
         description: Part of icon file name for dark background that can be  fetched from server.
         type: string
       color:
-        $ref: '#/definitions/Color'
+        $ref: '#/definitions/RGBColor'
     required:
       - alt
       - localIcon
@@ -1693,7 +1693,7 @@ definitions:
       URL:
         type: string
       color:
-        $ref: '#/definitions/Color'
+        $ref: '#/definitions/RGBColor'
       icon:
         type: string
         description: File name part for downloading an image for this mode. [See separate documentation](TODO) for how to construct a URL from this.
@@ -2484,7 +2484,7 @@ definitions:
         type: string
         description: Head sign of the service, indicating its direction. Related to `head_sign` in GTFS.
       serviceColor:
-        $ref: '#/definitions/Color'
+        $ref: '#/definitions/RGBColor'
       bicycleAccessible:
         description: Can you take a bicycle on this service? Missing when unknown.
         type: boolean
@@ -2511,7 +2511,7 @@ definitions:
         startTime:
           type: string
           format: date-time
-          description: Departure of the service  as per timetable in ISO 8601 format.
+          description: Departure of the service  as per timetable in ISO8601 format.
         modeInfo:
           $ref: '#/definitions/ModeInfo'
         realTimeStatus:
@@ -2603,11 +2603,11 @@ definitions:
               arrival:
                 type: string
                 format: date-time
-                description: Arrival time at this stop in ISO 8601 format.
+                description: Arrival time at this stop in ISO8601 format.
               departure:
                 type: string
                 format: date-time
-                description: Departure time from this stop in ISO 8601 format.
+                description: Departure time from this stop in ISO8601 format.
               relativeArrival:
                 type: integer
                 description: Arrival time at this stop in seconds since start of the segment (see `includeStops` input for `routing.json`). Note that this is negative for non-travelled shapes before the travelled shape and can be negative for the first stop of the travelled shape.
@@ -2649,11 +2649,11 @@ definitions:
       startTime:
         type: string
         format: date-time
-        description: In ISO 8601 format. Reflects real-time data if `realTime == true`.
+        description: In ISO8601 format. Reflects real-time data if `realTime == true`.
       endTime:
         type: string
         format: date-time
-        description: In ISO 8601 format. Reflects real-time data if `realTime == true`
+        description: In ISO8601 format. Reflects real-time data if `realTime == true`
       realTime:
         type: boolean
         description: Present and set to `true` if `startTime` and `endTime` reflect real-time data.
@@ -2665,7 +2665,7 @@ definitions:
       timetableStartTime:
         type: string
         format: date-time
-        description: For transit segments (optional). Time according to the timetable in ISO 8601 format, if there's real-time data available.
+        description: For transit segments (optional). Time according to the timetable in ISO8601 format, if there's real-time data available.
       stops:
         type: integer
         description: For transit segments (optional). Number of stops you need to stay on this segment. Does not include embarkation stop, but does include disembarkation stops. E.g., would say `1` if you get on the bus and get off at the next stop. Note here that for flights this differs from the usual counting, i.e., if this is a flight and this value is `1`, then this is indicates a direct "non-stop" flight.
@@ -2682,7 +2682,7 @@ definitions:
         type: string
         description: For transit segments (optional). Typically GTFS `trip_headsign`.
       serviceColor:
-        $ref: '#/definitions/Color'
+        $ref: '#/definitions/RGBColor'
       frequency:
         type: integer
         description: For transit segments (optional). Frequency of service in minutes if it's not running by a timetable.
@@ -2910,11 +2910,11 @@ definitions:
       depart:
         type: string
         format: date-time
-        description: Departure time in ISO 8601 format
+        description: Departure time in ISO8601 format
       arrive:
         type: string
         format: date-time
-        description: Arrival time at destination in ISO 8601 format
+        description: Arrival time at destination in ISO8601 format
       segments:
         type: array
         items:
