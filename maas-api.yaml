@@ -524,14 +524,12 @@ paths:
     post:
       tags:
         - Trip Planning
-      summary: A-to-B-to-C trip
+      summary: A-to-B-via-C trip
       description: |
-        Calculates a single A-to-B-to-C trip where transport modes can be customised per segment.
+        Calculates a single A-to-B-via-C trip where transport modes can be customised per segment.
 
         Of the provided trip pattern items in the `waypoints` input, exactly one should have the
         `time` field set.
-
-        Note: If you require alternatives for travelling between one waypoint and the next, use the `/ttp/` endpoint instead.
       requestBody:
         content:
           application/json:
@@ -621,24 +619,26 @@ paths:
         Rather than constructing this URL directly, you should get it
         from the `updateURL` property from a computed trip.
       parameters:
-        - name: DOCUMENTATION_NOT_COMPLETE
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Identifier of trip as returned by previous server call.
+        - name: hashCode
           in: query
           schema:
-            type: boolean
+            type: integer
+          description: Trip's hash code as previously fetched. When provided and nothing changed, this will return a 304.
       responses:
         200:
-          description: Successful response
+          description: Successful response, with updated trip
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Trip'
-    parameters:
-      - name: id
-        in: path
-        schema:
-          type: string
-        required: true
-        description: Identifier of trip as returned by previous server call.
+        304:
+          description: No change
 
   /trip/{id}/planned:
     post:
