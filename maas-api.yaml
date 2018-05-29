@@ -128,7 +128,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/RegionInfoResponse'
 
-  /info/operator.json:
+  /info/agency.json:
     post:
       tags:
         - Public Transport
@@ -140,7 +140,7 @@ paths:
           application/json:
             schema:
               type: object
-              description: Use `modes` to filter by tranport modes. Only results for the given modes will be retuned. When `full` paramater is false, it will retrieve a list of operator IDs for the given region and `modes` and `onlyRealTime` if any. You can also retrieve information for a list of particular operators using `operatorIDs` or `operatorNames`, providing their IDs (or names) as they were given before as a list member in this very same endpoint. The use of filters like `modes`, `onlyRealTime`, `operatorNames` and/or `operatorIDs` could lead to a empty response. In order to prevent this, make sure such combinations are posible, using previously fetched information.
+              description: Use `modes` to filter by tranport modes. Only results for the given modes will be retuned. When `full` paramater is false, it will retrieve a list of agency IDs for the given region and `modes` and `onlyRealTime` if any. You can also retrieve information for a list of particular agencies using `agencyIDs` or `agencyNames`, providing their IDs (or names) as they were given before as a list member in this very same endpoint. The use of filters like `modes`, `onlyRealTime`, `agencyNames` and/or `agencyIDs` could lead to a empty response. In order to prevent this, make sure such combinations are posible, using previously fetched information.
               properties:
                 regionID:
                   type: string
@@ -150,25 +150,25 @@ paths:
                   items:
                     type: string
                   description: Public transit modes (pt_pub_*) for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_pub_subway`. In absence, all modes are included.
-                operatorIDs:
+                agencyIDs:
                   type: array
                   items:
                     type: string
-                    description: Operator ID.
-                  description: Operator IDs to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `operatorNames`.
-                operatorNames:
+                    description: Agency ID.
+                  description: Agency IDs to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `agencyNames`.
+                agencyNames:
                   type: array
                   items:
                     type: string
-                    description: Operator name.
-                  description: Operator names to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `operatorIDs`.
+                    description: Agency name.
+                  description: Agency names to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `agencyIDs`.
                 onlyRealTime:
                   type: boolean
-                  description: Boolean to filter only operators with Real Time support. When true, returned operator list will contain only TSP with Real Time service.
+                  description: Boolean to filter only agencies with real-time support. When true, returned agency list will contain only TSP with Real Time service.
                   default: false
                 full:
                   type: boolean
-                  description: Boolean if result should include full information for operator/s or just a list with all their IDs ignoring `mode` array in response.
+                  description: Boolean if result should include full information for agency/s or just a list with all their IDs ignoring `mode` array in response.
                   default: false
               required:
                 - region
@@ -198,17 +198,17 @@ paths:
                     modes:
                       type: array
                       items:
-                        description: Detailed information for this operator under a specific public transport mode.
+                        description: Detailed information for this agency under a specific public transport mode.
                         type: object
                         properties:
                           mode:
                             type: string
-                            description: Operator's mode identifier.
+                            description: Agency's mode identifier.
                           numberOfServices:
                             type: integer
-                            description: Total number of services on the timetable this operator is running within a typical week.
+                            description: Total number of services on the timetable this agency is running within a typical week.
                           realTime:
-                            $ref: '#/components/schemas/RealtimeData'
+                            $ref: '#/components/schemas/RealTimeData'
                 example:
                   - id: LACMTA
                     name: Metro - Los Angeles
@@ -217,7 +217,7 @@ paths:
                         numberOfServices: 5698
                       - mode: pt_pub_bus
                         numberOfServices: 36855
-                        realtime:
+                        realTime:
                           - alerts: false
                           - positions: true
                           - updates: true
@@ -231,7 +231,7 @@ paths:
                     modes:
                       - mode: pt_pub_bus
                         numberOfServices: 7702
-                        realtime:
+                        realTime:
                           - alerts: true
                           - positions: true
                           - updates: false
@@ -248,20 +248,20 @@ paths:
         - Public Transport
       summary: List of routes for a particular TSP.
       description:
-        Retrieves detailed information about routes for a specified operator & region.
+        Retrieves detailed information about routes for a specified agency & region.
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              description: Use `modes` to filter by tranport modes. Only results for the given modes will be retuned. When `full` paramater is false, it will retrieve a list of route IDs for the given region/operator and `modes` and `onlyRealTime` if any. You can also retrieve information for a particular list of routes using `routeIDs` or `routeNames`, providing their IDs (or names) as they were given before as a list member in this very same endpoint. The use of filters like `modes`, `onlyRealTime`, `routeNames` and/or `routeIDs` could lead to a empty response. In order to prevent this, make sure such combinations are posible, using previously fetched information.
+              description: Use `modes` to filter by tranport modes. Only results for the given modes will be retuned. When `full` paramater is false, it will retrieve a list of route IDs for the given region/agency and `modes` and `onlyRealTime` if any. You can also retrieve information for a particular list of routes using `routeIDs` or `routeNames`, providing their IDs (or names) as they were given before as a list member in this very same endpoint. The use of filters like `modes`, `onlyRealTime`, `routeNames` and/or `routeIDs` could lead to a empty response. In order to prevent this, make sure such combinations are posible, using previously fetched information.
               properties:
                 regionID:
                   type: string
                   description: Region id from `/regions`.
-                operatorID:
+                agencyID:
                   type: string
-                  description: TSP ID from `info/operator.json`.
+                  description: TSP ID from `info/agency.json`.
                 modes:
                   type: array
                   items:
@@ -289,10 +289,10 @@ paths:
                   default: false
               required:
                 - region
-                - operatorID
+                - agencyID
               example:
                 regionID: US_CA_LosAngeles
-                operatorID: LACMTA_Rail
+                agencyID: LACMTA_Rail
                 modes:
                   - pt_pub_tram
                 full: true
@@ -328,7 +328,7 @@ paths:
                     routeColor:
                       $ref: '#/components/schemas/RGBColor'
                     realTime:
-                      $ref: '#/components/schemas/RealtimeData'
+                      $ref: '#/components/schemas/RealTimeData'
                 example:
                     - id: 803
                       name: Metro Green Line  (803)
@@ -355,7 +355,7 @@ paths:
                         - blue: 198
                         - green: 103
                         - red: 0
-                      realtime:
+                      realTime:
                         - alerts: false
                         - positions: true
                         - updates: false
@@ -391,18 +391,18 @@ paths:
           application/json:
             schema:
               type: object
-              description: When `full` paramater is false, it will retrieve a list of service trips IDs for the given route and `onlyRealTime` if any. You can also retrieve information for a particular list of services using `serviceTripIDs`.
+              description: When `full` paramater is false, it will retrieve a list of service trips IDs for the given route and `onlyRealTime` if any. You can also retrieve information for a particular list of services using `serviceIDs`.
               properties:
                 regionID:
                   type: string
                   description: Region id from `/regions`.
-                operatorID:
+                agencyID:
                   type: string
-                  description: TSP ID from `info/operator.json`.
+                  description: TSP ID from `info/agency.json`.
                 routeID:
                   type: string
                   description: Route ID from `info/route.json`.
-                serviceTripIDs:
+                serviceIDs:
                   type: array
                   items:
                     type: string
@@ -418,13 +418,13 @@ paths:
                   default: false
               required:
                 - region
-                - operatorID
+                - agencyID
                 - routeID
               example:
                 regionID: US_CA_LosAngeles
-                operatorID: LACMTA_Rail
+                agencyID: LACMTA_Rail
                 routeID:  806
-                serviceTripIDs:
+                serviceIDs:
                   - 40358027
                 full: true
       responses:
@@ -448,14 +448,14 @@ paths:
                         description: Stop code.
                       description: Sorted stop list for this trip.
                     realTime:
-                      $ref: '#/components/schemas/RealtimeData'
+                      $ref: '#/components/schemas/RealTimeData'
                 example:
                   - id: 40358027
                     stops:
                       - 80139
                       - 80138
                       - 80137
-                    realtime:
+                    realTime:
                       - alerts: false
                       - positions: true
                       - updates: false
@@ -541,11 +541,6 @@ paths:
 
         Rather than constructing this URL directly, you should get it
         from the `temporaryURL` property from a computed trip.
-      parameters:
-        - name: DOCUMENTATION_NOT_COMPLETE
-          in: query
-          schema:
-            type: boolean
       responses:
         200:
           description: Successful response, same format as routing.json, but with only one trip.
@@ -599,6 +594,11 @@ paths:
 
         Rather than constructing this URL directly, you should get it
         from the `updateURL` property from a computed trip.
+      parameters:
+        - name: DOCUMENTATION_NOT_COMPLETE
+          in: query
+          schema:
+            type: boolean
       responses:
         200:
           description: Successful response, same format as routing.json, but with only one trip.
@@ -955,9 +955,11 @@ paths:
                   items:
                     type: object
                     properties:
-                      operator:
+                      agencyID:
                         type: string
-                      serviceTripID:
+                      agencyName:
+                        type: string
+                      serviceID:
                         type: string
                       startStopCode:
                         type: string
@@ -968,8 +970,8 @@ paths:
                       endStopCode:
                         type: string
                     required:
-                      - operator
-                      - serviceTripID
+                      - agencyID
+                      - serviceID
                       - startStopCode
               required:
                 - region
@@ -977,11 +979,11 @@ paths:
               example:
                 regionID: AU_NSW_Sydney
                 services:
-                  - operator: Sydney Buses
-                    serviceTripID: "76641565_20160307_11954"
+                  - agencyID: Sydney Buses
+                    serviceID: "76641565_20160307_11954"
                     startStopCode: "2035143"
-                  - operator: Sydney Buses
-                    serviceTripID: "76640498_20160307_11954"
+                  - agencyID: Sydney Buses
+                    serviceID: "76640498_20160307_11954"
                     startStopCode: "2035143"
       responses:
         200:
@@ -996,7 +998,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        serviceTripID:
+                        serviceID:
                           type: string
                         startStopCode:
                           type: string
@@ -1008,10 +1010,10 @@ paths:
                           type: string
                           format: date-time
                           description: Time the departure/arrival time prediction was made in ISO8601 format.
-                        realtimeVehicle:
+                        realTimeVehicle:
                           # description: The vehicle for this specific service.
                           $ref: '#/components/schemas/RealTimeVehicle'
-                        realtimeAlternativeVehicle:
+                        realTimeAlternativeVehicle:
                           description: Alternative vehicles for the same route, but not necessarily, this specific service.
                           type: array
                           items:
@@ -1022,7 +1024,7 @@ paths:
                           items:
                             $ref: '#/components/schemas/RealTimeAlert'
                       required:
-                        - serviceTripID
+                        - serviceID
                 required:
                   - services
 
@@ -1040,17 +1042,17 @@ paths:
             type: string
           description: Region identifier as returned by `/regions`.
           required: true
-        - name: serviceTripID
+        - name: serviceID
           in: query
           schema:
             type: string
           description: Identifier of service as returned by other servlets.
           required: true
-        - name: operator
+        - name: agency
           in: query
           schema:
             type: string
-          description: Operator of service as returned other servlets. Not required but recommended as a `serviceTripID` might match multiple operators; in that case and when `operator` is not provide, a service details for a random operator will be returned.
+          description: Agency of service as returned other servlets. Not required but recommended as a `serviceID` might match multiple agencies; in that case and when `agencies` is not provide, a service details for a random agency will be returned.
         - name: embarkationDate
           in: query
           schema:
@@ -1095,10 +1097,10 @@ paths:
                       - IS_REAL_TIME
                       - CAPABLE
                       - INCAPABLE
-                  realtimeVehicle:
+                  realTimeVehicle:
                     # description: The vehicle for this specific service.
                     $ref: '#/components/schemas/RealTimeVehicle'
-                  realtimeAlternativeVehicle:
+                  realTimeAlternativeVehicle:
                     description: Alternative vehicles for the same route, but not necessarily, this specific service.
                     type: array
                     items:
@@ -1803,8 +1805,8 @@ components:
           type: string
         modeInfo:
           $ref: '#/components/schemas/ModeInfo'
-        operators:
-          description: List of public operators names, see `operators` field
+        agencies:
+          description: List of public transport agencies names, see `agencies` field
           type: array
           items:
             type: string
@@ -2093,7 +2095,7 @@ components:
                   description: Indicates the number of wheel chairs that can be accommodated on this vehicle.
                 model:
                   type: string
-                  description: Indicates the type of vehicle performing this trip. Please check operator documentation to determine how this field is composed.
+                  description: Indicates the type of vehicle performing this trip. Please check agency documentation to determine how this field is composed.
       required:
         - id
         - lastUpdate
@@ -2165,7 +2167,7 @@ components:
           - cy_bic-s_NORIS
           - wa_wal
 
-    RealtimeData:
+    RealTimeData:
       description: Real Time availability.
       properties:
         alerts:
@@ -2207,10 +2209,10 @@ components:
         transitWheelchairAccessibility:
           type: boolean
           description: Whether the TripGo API includes wheelchair accessibility information for public transport for this region.
-        operators:
+        agencies:
           type: array
           items:
-            title: OperatorInformation
+            title: AgencyInformation
             type: object
             properties:
               name:
@@ -2241,7 +2243,7 @@ components:
         - transitConcessionPricing
         - transitModes
         - transitWheelchairAccessibility
-        - operators
+        - agencies
       example:
         code: DE_HH_Hamburg
         streetBicyclePaths: true
@@ -2258,7 +2260,7 @@ components:
               red: 0
               blue: 211
               green: 157
-        operators:
+        agencies:
         - modes:
           - pt_pub_train
           - pt_pub_tram
@@ -2468,7 +2470,7 @@ components:
                 alt: train
                 identifier: pt_pub_train
                 localIcon: train
-              operators:
+              agencies:
               - VGN
               - DPN
             - modeInfo:
@@ -2480,19 +2482,19 @@ components:
                 identifier: pt_pub_subway
                 localIcon: subway
                 remoteIcon: subway-germany
-              operators:
+              agencies:
               - VGN
             - modeInfo:
                 alt: tram
                 identifier: pt_pub_tram
                 localIcon: tram
-              operators:
+              agencies:
               - VGN
             - modeInfo:
                 alt: bus
                 identifier: pt_pub_bus
                 localIcon: bus
-              operators:
+              agencies:
               - VGN
               - FlixBus
             title: Public transport
@@ -2500,9 +2502,11 @@ components:
     Service:
       description: Details of public transport service
       properties:
-        operator:
+        agencyID:
           type: string
-        serviceTripID:
+        agencyName:
+          type: string
+        serviceID:
           type: string
           description: Internal identifier of the service. Related to `trip_id` in GTFS.
         serviceName:
@@ -2524,14 +2528,15 @@ components:
           description: |
             If this service is wheelchair accessible or not. If this field is missing, this does not mean that it is not accessible, but rather that it is unknown whether it is accessible. Only if the value is present and is `false`, does it mean that the service is not wheelchair accessible.
       required:
-        - operator
-        - serviceTripID
+        - agencyID
+        - serviceID
       example:
-        operator: Sydney Buses
+        agencyID: 123
+        agencyName: Sydney Buses
         serviceDirection: CITY Circular Quay
         serviceName: Maroubra Beach - Circular Quay
         serviceNumber: "377"
-        serviceTripID: "142496466_20160307_11954"
+        serviceID: "142496466_20160307_11954"
 
     ServiceDeparture:
       description: Details of a service departing at a particular time
@@ -2552,10 +2557,10 @@ components:
               - IS_REAL_TIME
               - CAPABLE
               - INCAPABLE
-          realtimeVehicle:
+          realTimeVehicle:
             # description: The vehicle for this specific service.
             $ref: '#/components/schemas/RealTimeVehicle'
-          realtimeAlternativeVehicle:
+          realTimeAlternativeVehicle:
             description: Alternative vehicles for the same route, but not necessarily, this specific service.
             type: array
             items:
@@ -2730,9 +2735,9 @@ components:
         isCancelled:
           type: boolean
           description: For transit segments (optional). If service has been cancelled according to real-time data.
-        realtimeVehicle:
+        realTimeVehicle:
           $ref: '#/components/schemas/RealTimeVehicle'
-        realtimeVehicleAlternatives:
+        realTimeVehicleAlternatives:
           type: array
           items:
             $ref: '#/components/schemas/RealTimeVehicle'
@@ -2754,7 +2759,6 @@ components:
         startTime: 1454996190
         endTime: 1454996616
         segmentTemplateHashCode: 1963282048
-        serviceTripID: 605F.1433.101.60-20160306.T.8.40873943
         stops: 3
         platform: Platform 1
         serviceNumber: T4
@@ -3041,7 +3045,7 @@ components:
       properties:
         alert:
           $ref: "#/components/schemas/RealTimeAlert"
-        operators:
+        agencies:
           type: array
           items:
             type: string
@@ -3053,7 +3057,7 @@ components:
           type: array
           items:
             type: string
-        serviceTripIDs:
+        serviceIDs:
           type: array
           items:
             type: string
