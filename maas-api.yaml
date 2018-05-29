@@ -132,9 +132,9 @@ paths:
     post:
       tags:
         - Public Transport
-      summary: List of TSPs for a particular region.
+      summary: List of agencies for a particular region.
       description:
-        Retrieves detailed information about covered transport service providers for a specified region.
+        Retrieves detailed information about covered public transport agencies for a specified region.
       requestBody:
         content:
           application/json:
@@ -565,6 +565,13 @@ paths:
 
         Rather than constructing this URL directly, you should get it
         from the `temporaryURL` property from a computed trip.
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Identifier of trip as returned by previous server call.
       responses:
         200:
           description: Successful response
@@ -572,13 +579,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Trip'
-    parameters:
-      - name: id
-        in: path
-        schema:
-          type: string
-        required: true
-        description: Identifier of trip as returned by previous server call.
 
   /trip/{id}/save:
     get:
@@ -592,6 +592,13 @@ paths:
 
         Rather than constructing this URL directly, you should get it
         from the `saveURL` property from a computed trip.
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Identifier of trip as returned by previous server call.
       responses:
         200:
           description: Successful response
@@ -599,13 +606,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SavedTripUrl'
-    parameters:
-      - name: id
-        in: path
-        schema:
-          type: string
-        required: true
-        description: Identifier of trip as returned by previous server call.
 
   /trip/{id}/update:
     get:
@@ -653,6 +653,12 @@ paths:
         Rather than constructing this URL directly, you should get it
         from the `plannedURL` property from a computed trip.
       parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Identifier of trip as returned by previous server call.
         - name: DOCUMENTATION_NOT_COMPLETE
           in: query
           schema:
@@ -660,13 +666,6 @@ paths:
       responses:
         200:
           description: Successful response
-    parameters:
-      - name: id
-        in: path
-        schema:
-          type: string
-        required: true
-        description: Identifier of trip as returned by previous server call.
 
   /geocode.json:
     get:
@@ -3020,7 +3019,7 @@ components:
         trips:
           type: array
           items:
-            $ref: '#/components/schemas/Trip'
+            $ref: '#/components/schemas/TripTemplate'
         sources:
             $ref: '#/components/schemas/ArrayOfDataSourceAttribution'
       required:
