@@ -493,6 +493,32 @@ paths:
               schema:
                 $ref: '#/components/schemas/InputError'
 
+  /routing/grouped:
+    post:
+      tags:
+        - Trip Planning
+      summary: A-to-B trips (grouped)
+      description:
+        Calculates door-to-door trips for the specified mode(s) which are grouped by their similarity (e.g., same public transport trip at a later time)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoutingInput'
+
+      responses:
+        200:
+          description: Successful response. Can include many trips.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupedRoutingResponse'
+        400:
+          description: Bad request, most likely due to issues with the input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InputError'                
 
   /waypoint:
     post:
@@ -523,11 +549,11 @@ paths:
                 - waypoints
       responses:
         200:
-          description: Successful response. Only one trip returned.
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RoutingResponse'
+                $ref: '#/components/schemas/Trip'
 
   /trip/{id}:
     get:
@@ -543,11 +569,11 @@ paths:
         from the `temporaryURL` property from a computed trip.
       responses:
         200:
-          description: Successful response, same format as routing.json, but with only one trip.
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RoutingResponse'
+                $ref: '#/components/schemas/Trip'
     parameters:
       - name: id
         in: path
@@ -601,11 +627,11 @@ paths:
             type: boolean
       responses:
         200:
-          description: Successful response, same format as routing.json, but with only one trip.
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RoutingResponse'
+                $ref: '#/components/schemas/Trip'
     parameters:
       - name: id
         in: path
@@ -1285,6 +1311,23 @@ components:
 
     RoutingResponse:
       properties:
+        trips:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trip'
+        regionIDs:
+          type: array
+          items:
+            type: string
+      required:
+        - trips
+        - regionIDs
+      # example:
+      #   regionIDs:
+      #   - DE_BV_Nuremberg
+
+    GroupedRoutingResponse:
+      properties:
         groups:
           type: array
           items:
@@ -1307,7 +1350,7 @@ components:
         - regionIDs
       # example:
       #   regionIDs:
-      #   - DE_BV_Nuremberg
+      #   - DE_BV_Nuremberg      
 
     InputError:
       properties:
@@ -2502,6 +2545,8 @@ components:
     Service:
       description: Details of public transport service
       properties:
+        modeInfo:
+          $ref: '#/components/schemas/ModeInfo'
         agencyID:
           type: string
         agencyName:
@@ -2520,6 +2565,12 @@ components:
           description: Head sign of the service, indicating its direction. Related to `head_sign` in GTFS.
         serviceColor:
           $ref: '#/components/schemas/RGBColor'
+        frequency:
+          type: integer
+          description: Frequency of service in minutes if it's not running by a timetable.
+        ticketWebsiteURL:
+          type: string
+          description: URL for travellers do get additional information about tickets.
         bicycleAccessible:
           description: Can you take a bicycle on this service? Missing when unknown.
           type: boolean
@@ -2528,15 +2579,22 @@ components:
           description: |
             If this service is wheelchair accessible or not. If this field is missing, this does not mean that it is not accessible, but rather that it is unknown whether it is accessible. Only if the value is present and is `false`, does it mean that the service is not wheelchair accessible.
       required:
+        - modeInfo
         - agencyID
         - serviceID
       example:
+        modeInfo:
+          alt: bus
+          identifier: pt_pub_bus
+          localIcon: bus
         agencyID: 123
         agencyName: Sydney Buses
         serviceDirection: CITY Circular Quay
         serviceName: Maroubra Beach - Circular Quay
         serviceNumber: "377"
         serviceID: "142496466_20160307_11954"
+        bicycleAccessible: false
+        wheelchairAccessible: true
 
     ServiceDeparture:
       description: Details of a service departing at a particular time
@@ -2547,9 +2605,11 @@ components:
           startTime:
             type: string
             format: date-time
-            description: Departure of the service  as per timetable in ISO8601 format.
-          modeInfo:
-            $ref: '#/components/schemas/ModeInfo'
+            description: Departure of the service as per timetable in ISO8601 format.
+          timetableStartTime:
+            type: string
+            format: date-time
+            description: Time according to the timetable in ISO8601 format, if there's real-time data available.
           realTimeStatus:
             type: string
             description: Indicator for whether real-time information is available for this service. Note that even if this says the service is real-time, this does not mean the `startTime` is real-time.
@@ -2570,29 +2630,11 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/RealTimeAlert'
-          bicycleAccessible:
-            description: Can you take a bicycle on this service? Missing when unknown.
-            type: boolean
-          wheelchairAccessible:
-            description: Is this service wheelchair accessible? Missing when unknown.
-            type: boolean
         required:
           - startTime
-          - modeInfo
         example:
           startTime: 1458708255
-          modeInfo:
-            alt: bus
-            identifier: pt_pub_bus
-            localIcon: bus
-          operator: Sydney Buses
           realTimeStatus: CAPABLE
-          serviceDirection: CITY Circular Quay
-          serviceName: Maroubra Beach - Circular Quay
-          serviceNumber: "377"
-          serviceTripID: "142496466_20160307_11954"
-          bicycleAccessible: false
-          wheelchairAccessible: true
 
     ServiceShape:
       description:
@@ -2675,6 +2717,16 @@ components:
           - encodedWaypoints
           - travelled
 
+    Segment:
+      properties:
+        reference:
+          $ref: '#/components/schemas/SegmentReference'
+        template:
+          $ref: '#/components/schemas/SegmentTemplate'
+      required:
+        - reference
+        - template
+
     SegmentReference:
       description:
         Segment information that's specific to a trip. The bulk of the information is in the segment template of the hash code that the segment reference is referencing.
@@ -2695,9 +2747,8 @@ components:
           description: Present and set to `true` if `startTime` and `endTime` reflect real-time data.
         booking:
           $ref: '#/components/schemas/BookingInfo'
-        serviceTripID:
-          type: string
-          description: For transit segments (required). Matches GTFS `trip_id`.
+        service:
+          $ref: '#/components/schemas/Service'
         timetableStartTime:
           type: string
           format: date-time
@@ -2708,30 +2759,6 @@ components:
         platform:
           type: string
           description: For transit segments (optional). Title for embarkation platform.
-        serviceNumber:
-          type: string
-          description: For transit segments (optional). Typically GTFS `route_short_name`.
-        serviceName:
-          type: string
-          description: For transit segments (optional). Typically GTFS `route_long_name`.
-        serviceDirection:
-          type: string
-          description: For transit segments (optional). Typically GTFS `trip_headsign`.
-        serviceColor:
-          $ref: '#/components/schemas/RGBColor'
-        frequency:
-          type: integer
-          description: For transit segments (optional). Frequency of service in minutes if it's not running by a timetable.
-        ticketWebsiteURL:
-          type: string
-          description: For transit segments (optional). URL for travellers do get additional information about tickets.
-        bicycleAccessible:
-          description: Can you take a bicycle on this service? Missing when unknown.
-          type: boolean
-        wheelchairAccessible:
-          type: boolean
-          description: |
-            For transit segments (optional). If this segment is wheelchair accessible or not. If this field is missing, this does not mean that it is not accessible, but rather that it is unknown whether it is accessible. Only if the value is present and is `false`, does it mean that the segment is not wheelchair accessible.
         isCancelled:
           type: boolean
           description: For transit segments (optional). If service has been cancelled according to real-time data.
@@ -2750,7 +2777,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NearbyCarParkLocation'
-
       required:
         - segmentTemplateHashCode
         - startTime
@@ -2761,11 +2787,6 @@ components:
         segmentTemplateHashCode: 1963282048
         stops: 3
         platform: Platform 1
-        serviceNumber: T4
-        serviceName: T4 Eastern Suburbs & Illawarra Line
-        serviceDirection: Hurstville
-        bicycleAccesible: true
-        wheelchairAccessible: true
 
     SegmentTemplate:
       oneOf:
@@ -2940,7 +2961,7 @@ components:
             type: boolean
             description: If car park information is available for this segment
 
-    Trip:
+    BaseTrip:
       properties:
         depart:
           type: string
@@ -2950,10 +2971,6 @@ components:
           type: string
           format: date-time
           description: Arrival time at destination in ISO8601 format
-        segments:
-          type: array
-          items:
-            $ref: '#/components/schemas/SegmentReference'
         mainSegmentHashCode:
           type: integer
           description:
@@ -3018,13 +3035,36 @@ components:
       required:
         - depart
         - arrive
-        - segments
         - mainSegmentHashCode
         - availability
         - weightedCost
         - hassleCost
         - carbonCost
         - caloriesCost
+
+    Trip:
+      allOf:
+      - $ref: '#/components/schemas/BaseTrip'
+      - type: object
+        properties:
+          segments:
+            type: array
+            items:
+              $ref: '#/components/schemas/Segment'
+        required:
+          - segments
+
+    TripTemplate:
+      allOf:
+      - $ref: '#/components/schemas/BaseTrip'
+      - type: object
+        properties:
+          segments:
+            type: array
+            items:
+              $ref: '#/components/schemas/SegmentReference'
+        required:
+          - segments
 
     TripGroup:
       properties:
