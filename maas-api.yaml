@@ -1210,10 +1210,6 @@ components:
             type: string
           description:
             Public stops to avoid. Stop codes usually coming from the `excludedStops` field in `alerts` field. If a stop code corresponds to a "parent" station, it will avoid all "children" stops.
-        includeStops:
-          type: boolean
-          description: Boolean if segment templates for public transport should include the list of all stops along the way, including *relative* times (i.e., seconds since start of the segment)
-          default: false
         2wirc:
           type: boolean
           description: Boolean to determine whether two-way-hire vehicles, such as pod-based car-share, should automatically add the cost of returning the vehicle to its pick-up location. Set to false if the cost of the trip should only include the cost that's attributed to this trip and ignore the unavoidable additional cost for returning the vehicle to its pick-up location.
@@ -1784,9 +1780,6 @@ components:
         alt:
           description: Textual alternative to icon
           type: string
-        localIcon:
-          description: Part of icon file name that should be shipped with app.
-          type: string
         remoteIcon:
           description: Part of icon file name that can be fetched from server.
           type: string
@@ -1797,7 +1790,6 @@ components:
           $ref: '#/components/schemas/RGBColor'
       required:
         - alt
-        - localIcon
 
     ModeIdentifier:
       description: This is a map/dictionary with multiple items of this type. Each key is a mode identifier. See https://developer.tripgo.com/faq/#mode-identifiers.
@@ -1808,9 +1800,6 @@ components:
           type: string
         color:
           $ref: '#/components/schemas/RGBColor'
-        icon:
-          type: string
-          description: File name part for downloading an image for this mode. [See separate documentation](TODO) for how to construct a URL from this.
         implies:
           type: string
           description: Another mode identifier that is required by this one, e.g., you can't request only school buses without also requesting regular public transport.
@@ -2225,7 +2214,7 @@ components:
 
     RegionDetail:
       properties:
-        code:
+        regionID:
           type: string
           description: Internal identifier for the region
         streetBicyclePaths:
@@ -2279,7 +2268,7 @@ components:
               - modes
 
       required:
-        - code
+        - regionID
         - streetBicyclePaths
         - streetWheelchairAccessibility
         - transitBicycleAccessibility
@@ -2288,7 +2277,7 @@ components:
         - transitWheelchairAccessibility
         - agencies
       example:
-        code: DE_HH_Hamburg
+        regionID: DE_HH_Hamburg
         streetBicyclePaths: true
         streetWheelchairAccessibility: false
         transitBicycleAccessibility: false
@@ -2297,7 +2286,6 @@ components:
         transitModes:
           - identifier: pt_pub_ferry
             alt: ferry
-            localIcon: ferry
             remoteIcon: ferry-germany-hamburg
             color:
               red: 0
@@ -2315,21 +2303,17 @@ components:
           types:
           - alt: train
             identifier: pt_pub_train
-            localIcon: train
           - alt: tram
             identifier: pt_pub_tram
-            localIcon: tram
           - alt: subway
             color:
               blue: 165
               green: 103
               red: 0
             identifier: pt_pub_subway
-            localIcon: subway
             remoteIcon: subway-germany
           - alt: bus
             identifier: pt_pub_bus
-            localIcon: bus
         - modes:
           - pt_pub_bus
           name: FlixBus
@@ -2338,7 +2322,6 @@ components:
           types:
           - alt: bus
             identifier: pt_pub_bus
-            localIcon: bus
         - modes:
           - pt_pub_train
           name: DPN
@@ -2347,7 +2330,6 @@ components:
           types:
           - alt: train
             identifier: pt_pub_train
-            localIcon: train
         modes:
           cy_bic-s:
             modeInfo:
@@ -2357,7 +2339,6 @@ components:
                 green: 199
                 red: 30
               identifier: cy_bic-s
-              localIcon: bicycle-share
             specificModes:
             - integrations:
               - routing
@@ -2371,7 +2352,6 @@ components:
                   red: 236
                 description: NorisBike
                 identifier: cy_bic-s_norisbike-nurnberg
-                localIcon: bicycle-share
               title: NorisBike
               url: http://www.norisbike.de
             title: Bike share
@@ -2387,7 +2367,6 @@ components:
                   red: 19
                 description: BlaBlaCar
                 identifier: me_car-p_BlaBlaCar
-                localIcon: car-pool
                 remoteIcon: blablacar
               title: BlaBlaCar
               url: https://www.blablacar.com
@@ -2398,7 +2377,6 @@ components:
                 green: 196
                 red: 46
               identifier: me_car-p
-              localIcon: car-pool
             title: Carpooling
           me_car-r:
             lockedModes:
@@ -2412,7 +2390,6 @@ components:
                   green: 169
                   red: 115
                 identifier: me_car-r_SwiftFleet
-                localIcon: car-share
               title: Car rental
             modeInfo:
               alt: Car rental
@@ -2421,7 +2398,6 @@ components:
                 green: 169
                 red: 115
               identifier: me_car-r
-              localIcon: car-share
             title: Car rental
           me_car-s:
             lockedModes:
@@ -2436,7 +2412,6 @@ components:
                   red: 252
                 description: Flinkster
                 identifier: me_car-s_FLINK
-                localIcon: car-share
               title: Flinkster
               url: https://www.flinkster.de
             modeInfo:
@@ -2446,7 +2421,6 @@ components:
                 green: 169
                 red: 115
               identifier: me_car-s
-              localIcon: car-share
             title: Car share
           ps_tax:
             lockedModes:
@@ -2460,7 +2434,6 @@ components:
                   red: 0
                 description: myDriver
                 identifier: ps_tax_MYDRIVER
-                localIcon: taxi
                 remoteIcon: mydriver
               title: myDriver
               url: https://mydriver.com
@@ -2471,7 +2444,6 @@ components:
                 green: 202
                 red: 221
               identifier: ps_tax
-              localIcon: taxi
             title: Taxi
           ps_tnc:
             modeInfo:
@@ -2481,24 +2453,6 @@ components:
                 green: 169
                 red: 115
               identifier: ps_tnc
-              localIcon: tnc
-            specificModes:
-            - integrations:
-              - routing
-              - real_time
-              modeInfo:
-                alt: Skedgo
-                color:
-                  blue: 47
-                  green: 255
-                  red: 47
-                description: Skedgo
-                identifier: ps_tnc_ODB
-                localIcon: tnc
-                remoteIcon: skedgo
-              title: Skedgo
-              url: https://www.skedgo.com
-            title: Ride share
           pt_pub:
             modeInfo:
               alt: Public transport
@@ -2507,12 +2461,10 @@ components:
                 green: 197
                 red: 45
               identifier: pt_pub
-              localIcon: public
             specificModes:
             - modeInfo:
                 alt: train
                 identifier: pt_pub_train
-                localIcon: train
               agencies:
               - VGN
               - DPN
@@ -2523,20 +2475,17 @@ components:
                   green: 103
                   red: 0
                 identifier: pt_pub_subway
-                localIcon: subway
                 remoteIcon: subway-germany
               agencies:
               - VGN
             - modeInfo:
                 alt: tram
                 identifier: pt_pub_tram
-                localIcon: tram
               agencies:
               - VGN
             - modeInfo:
                 alt: bus
                 identifier: pt_pub_bus
-                localIcon: bus
               agencies:
               - VGN
               - FlixBus
@@ -2586,7 +2535,6 @@ components:
         modeInfo:
           alt: bus
           identifier: pt_pub_bus
-          localIcon: bus
         agencyID: 123
         agencyName: Sydney Buses
         serviceDirection: CITY Circular Quay
@@ -2686,12 +2634,6 @@ components:
                   type: string
                   format: date-time
                   description: Departure time from this stop in ISO8601 format.
-                relativeArrival:
-                  type: integer
-                  description: Arrival time at this stop in seconds since start of the segment (see `includeStops` input for `routing.json`). Note that this is negative for non-travelled shapes before the travelled shape and can be negative for the first stop of the travelled shape.
-                relativeDeparture:
-                  type: integer
-                  description: Departure time from this stop in seconds since start of the segment (see `includeStops` input for `routing.json`). Note that this is negative for non-travelled shapes before the travelled shape.
                 wheelchairAccessible:
                   type: boolean
                   description: Is this stop wheelchair accessible? Missing when unknown.
