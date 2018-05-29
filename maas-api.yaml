@@ -5,10 +5,15 @@ info:
   x-logo:
     url: "https://developer.tripgo.com/img/tripgo-api-logo-color.svg"
   description:
-    The MaaS API is a spec for a service that let's you plan door-to-door
+    The MaaS API is a spec for a web service that let's you plan door-to-door
     trips using a large variety of public and private transport. It 
     integrates real-time information and allows users to book and pay
     for transport.<br/>
+    <br/>
+    In Mobility as a Service (MaaS) terms, this API is to be exposed by a MaaS 
+    Operator or by a MaaS Integrator, rather than by a transport service 
+    provider (TSP). This API covers multiple TSPs across a variety of 
+    transport modes and focusses on A-to-B trips.<br/>
     <br/>
     This API spec is based on the <a href="https://github.com/skedgo/tripgo-api">TripGo API</a>, copyright 2018 SkedGo Pty Ltd.
 
@@ -21,7 +26,7 @@ info:
 servers:
   - url: "https://api.tripgo.com/v2"
 tags:
-  - name: Configuration
+  - name: Coverage
   - name: Trip Planning
   - name: Trips
   - name: Geocode
@@ -32,7 +37,7 @@ paths:
   /regions:
     get:
       tags: 
-        - Configuration
+        - Coverage
       summary: List of covered regions
       parameters:
         - name: hashCode
@@ -53,11 +58,42 @@ paths:
                 $ref: '#/components/schemas/RegionsResponse'
         304:
           description: No change
-          
+  
+  /regions/contain:
+    get:
+      tags:
+        - Coverage
+      summary: Coverage check by point(s)
+      parameters:
+        - name: points
+          in: query
+          required: true
+          description: Array of points (string of lat-long pairs, separated by a comma) to check for coverage. Result will indicate whether *all* of the provided points are covered.
+          schema:
+            type: array
+            items:
+              type: string
+              description: Latitude-longitude pair as a string, separated by a comma
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  covered:
+                    type: boolean
+                  regionIDs:
+                    type: array
+                    items:
+                      type: string
+
+
   /regions/{id}:
     get:
       tags: 
-        - Configuration
+        - Coverage
       summary: Covered region
       parameters:
         - name: id
@@ -76,7 +112,7 @@ paths:
   /regions/{id}/details:
     get:
       tags: 
-        - Configuration
+        - Coverage
       summary: Details of a covered region
       parameters:
         - name: id
