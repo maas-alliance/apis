@@ -132,119 +132,78 @@ paths:
               schema:
                 $ref: '#/components/schemas/RegionDetail'
 
-  /info/agency.json:
-    post:
+  /regions/{id}/agencies:
+    get:
       tags:
         - Public Transport
       summary: List of agencies for a particular region.
       description:
         Retrieves detailed information about covered public transport agencies for a specified region.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              description: Use `modes` to filter by tranport modes. Only results for the given modes will be retuned. When `full` paramater is false, it will retrieve a list of agency IDs for the given region and `modes` and `onlyRealTime` if any. You can also retrieve information for a list of particular agencies using `agencyIDs` or `agencyNames`, providing their IDs (or names) as they were given before as a list member in this very same endpoint. The use of filters like `modes`, `onlyRealTime`, `agencyNames` and/or `agencyIDs` could lead to a empty response. In order to prevent this, make sure such combinations are posible, using previously fetched information.
-              properties:
-                regionID:
-                  type: string
-                  description: Region id from `/regions`.
-                modes:
-                  type: array
-                  items:
-                    type: string
-                  description: Public transit modes (pt_pub_*) for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_pub_subway`. In absence, all modes are included.
-                agencyIDs:
-                  type: array
-                  items:
-                    type: string
-                    description: Agency ID.
-                  description: Agency IDs to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `agencyNames`.
-                agencyNames:
-                  type: array
-                  items:
-                    type: string
-                    description: Agency name.
-                  description: Agency names to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `agencyIDs`.
-                onlyRealTime:
-                  type: boolean
-                  description: Boolean to filter only agencies with real-time support. When true, returned agency list will contain only TSP with Real Time service.
-                  default: false
-                full:
-                  type: boolean
-                  description: Boolean if result should include full information for agency/s or just a list with all their IDs ignoring `mode` array in response.
-                  default: false
-              required:
-                - region
-              example:
-                regionID: US_CA_LosAngeles
-                modes:
-                  - pt_pub_tram
-                  - pt_pub_bus
-                full: true
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: modes
+          in: query
+          description: Public transit modes (pt_pub_*) for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_pub_subway`. In absence, all modes are included.          
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: onlyRealTime
+          in: query
+          description: Boolean to filter only agencies with real-time support. When true, returned agency list will contain only TSP with Real Time service.
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: Successful response
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  description: TSP information.
-                  properties:
-                    id:
-                      type: string
-                      description: TSP ID.
-                    name:
-                      type: string
-                      description: TSP name.
-                    modes:
-                      type: array
-                      items:
-                        description: Detailed information for this agency under a specific public transport mode.
-                        type: object
-                        properties:
-                          mode:
-                            type: string
-                            description: Agency's mode identifier.
-                          numberOfServices:
-                            type: integer
-                            description: Total number of services on the timetable this agency is running within a typical week.
-                          realTime:
-                            $ref: '#/components/schemas/RealTimeData'
-                example:
-                  - id: LACMTA
-                    name: Metro - Los Angeles
-                    modes:
-                      - mode: pt_pub_tram
-                        numberOfServices: 5698
-                      - mode: pt_pub_bus
-                        numberOfServices: 36855
-                        realTime:
-                          - alerts: false
-                          - positions: true
-                          - updates: true
-                  - id: 27
-                    name: LADOT
-                    modes:
-                      - mode: pt_pub_bus
-                        numberOfServices: 15828
-                  - id: 6216179
-                    name: Big Blue Bus
-                    modes:
-                      - mode: pt_pub_bus
-                        numberOfServices: 7702
-                        realTime:
-                          - alerts: true
-                          - positions: true
-                          - updates: false
+                $ref: '#/components/schemas/ArrayOfAgencies'
         400:
           description: Bad request, most likely due to issues with the input or non-posible scenarios.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/InputError'
+
+  /agencies/:
+    get:
+      tags:
+        - Public Transport
+      summary: List of all agencies
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayOfAgencies'
+
+  /agencies/{id}:
+    get:
+      tags:
+        - Public Transport
+      summary: List of all agencies
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agency' 
 
   /info/route.json:
     post:
@@ -2192,31 +2151,7 @@ components:
                     items:
                       $ref: '#/components/schemas/SpecificModeDetails'
           agencies:
-            type: array
-            items:
-              type: object
-              properties:
-                name:
-                  type: string
-                numberOfServices:
-                  type: integer
-                realTimeStatus:
-                  type: string
-                  enum:
-                    - IS_REAL_TIME
-                    - INCAPABLE
-                modes:
-                  type: array
-                  description: List of available modes, see `modes` field
-                  items:
-                    type: string
-              required:
-                - name
-                - numberOfServices
-                - realTimeStatus
-                - modes
-                required:
-                  - modeInfo
+            $ref: '#/components/schemas/ArrayOfAgencies'
 
         required:
           - modes
@@ -2227,45 +2162,6 @@ components:
             transitBicycleAccessibility: false
             transitConcessionPricing: false
             transitWheelchairAccessibility: true
-          agencies:
-          - modes:
-            - pt_pub_train
-            - pt_pub_tram
-            - pt_pub_subway
-            - pt_pub_bus
-            name: VGN
-            numberOfServices: 50056
-            realTimeStatus: INCAPABLE
-            types:
-            - title: train
-              identifier: pt_pub_train
-            - title: tram
-              identifier: pt_pub_tram
-            - title: subway
-              color:
-                blue: 165
-                green: 103
-                red: 0
-              identifier: pt_pub_subway
-              remoteIcon: subway-germany
-            - title: bus
-              identifier: pt_pub_bus
-          - modes:
-            - pt_pub_bus
-            name: FlixBus
-            numberOfServices: 1597
-            realTimeStatus: INCAPABLE
-            types:
-            - title: bus
-              identifier: pt_pub_bus
-          - modes:
-            - pt_pub_train
-            name: DPN
-            numberOfServices: 201
-            realTimeStatus: INCAPABLE
-            types:
-            - title: train
-              identifier: pt_pub_train
           modes:
             cy_bic-s:
               modeInfo:
@@ -2410,6 +2306,75 @@ components:
                 agencyIDs:
                 - VGN
                 - FlixBus
+
+    Agency:
+      description: Public transport agency
+      properties:
+        id:
+          description: Agency ID
+          type: string
+        name:
+          description: Name of agency
+          type: string
+        numberOfServices:
+          type: integer
+        realTimeStatus:
+          type: string
+          enum:
+            - CAPABLE
+            - INCAPABLE
+        modes:
+          type: array
+          items:
+            description: Detailed information for this agency under a specific public transport mode.
+            type: object
+            properties:
+              mode:
+                type: string
+                description: Agency's mode identifier.
+              numberOfServices:
+                type: integer
+                description: Total number of services on the timetable this agency is running within a typical week.
+              realTime:
+                $ref: '#/components/schemas/RealTimeData'
+            required:
+              - mode
+              - numberOfServices
+      required:
+        - name
+        - numberOfServices
+        - realTimeStatus
+        - modes
+
+    ArrayOfAgencies:
+      type: array
+      items:
+        $ref: '#/components/schemas/Agency'
+      example:
+        - name: VGN
+          numberOfServices: 50056
+          realTimeStatus: CAPABLE
+          modes:
+            - mode: pt_pub_tram
+              numberOfServices: 5698
+            - mode: pt_pub_bus
+              numberOfServices: 36855
+              realTime:
+                - alerts: false
+                - positions: true
+                - updates: true
+        - name: FlixBus
+          numberOfServices: 1597
+          realTimeStatus: INCAPABLE
+          modes:
+            - mode: pt_pub_coach
+              numberOfServices: 120
+        - name: DPN
+          numberOfServices: 201
+          realTimeStatus: INCAPABLE
+          modes:
+            - mode: pt_pub_train
+              numberOfServices: 200
 
     RealTimeData:
       description: Real Time availability.
