@@ -1147,11 +1147,9 @@ components:
         config:
           $ref: '#/components/schemas/ConfigInput'
         from:
-          type: string
-          description: Origin coordinate as `(lat,lng)"address"` string (the `"address"` part is optional).
+          $ref: '#/components/schemas/Coordinate'
         to:
-          type: string
-          description: Destination coordinate as `(lat,lng)"address"` string (the `"address"` part is optional).
+          $ref: '#/components/schemas/Coordinate'
         departAfter:
           type: string
           format: date-time
@@ -1230,10 +1228,10 @@ components:
 
     TripInputPattern:
       properties:
-        lat:
+        latitude:
           type: number
           description: Latitude of the waypoint
-        lng:
+        longitue:
           type: number
           description: Longitude of the waypoint
         mode:
@@ -1244,8 +1242,8 @@ components:
           format: date-time
           description: Time to start at this waypoint in ISO8601 format.
       required:
-        - lat
-        - lng
+        - latitude
+        - longitue
         - mode
 
     RegionsResponse:
@@ -1366,16 +1364,23 @@ components:
         - green
 
     Coordinate:
+      description:
+        The geographic coordinates of a place or event, based on http://schema.org/GeoCoordinates
+      externalDocs:
+        url: "http://schema.org/GeoCoordinates"
       properties:
-        lat:
+        address:
+          type: string
+          description: Physical address of the item.
+        latitude:
           type: number
-          description: Latitude
-        lng:
+          description: The latitude of a location. For example 37.42242 (WGS 84).
+        longitude:
           type: number
-          description: Longitude
+          description: The longitude of a location. For example -122.08585 (WGS 84).
       required:
-        - lat
-        - lng
+        - latitude
+        - longitude
 
     Location:
       allOf:
@@ -1385,8 +1390,6 @@ components:
           timezone:
             type: string
             description: Timezone identifier
-          address:
-            type: string
         required:
           - timezone
 
@@ -1778,15 +1781,6 @@ components:
       description: Opening hours
       externalDocs:
         url: "http://schema.org/openingHours"
-      example:
-        timezone: Australia/Sydney
-        days:
-          - name: MONDAY
-            times:
-              - opens: 09:00
-                closes: 13:00
-              - opens: 18:00
-                closes: 02:00
 
     PricingTable:
       properties:
@@ -1872,30 +1866,21 @@ components:
         allowedOnly: CUSTOMERS
 
     Entrance:
-      description: Information about the car park entrance.
-      properties:
-        type:
-          description: Entrance type identifier
-          type: string
-          enum:
-              - ENTRANCE_EXIT
-              - ENTRANCE_ONLY
-              - EXIT_ONLY
-              - PEDESTRIAN
-              - DISABLED_PEDESTRIAN
-              - PERMIT
-        address:
-          type: string
-        lat:
-          type: number
-          description: Latitude
-        lng:
-          type: number
-          description: Longitude
-      required:
-        - type
-        - lat
-        - lng
+      allOf:
+      - $ref: '#/components/schemas/Coordinate'
+      - type: object
+        description: Information about the car park entrance.
+        properties:
+          type:
+            description: Entrance type identifier
+            type: string
+            enum:
+                - ENTRANCE_EXIT
+                - ENTRANCE_ONLY
+                - EXIT_ONLY
+                - PEDESTRIAN
+                - DISABLED_PEDESTRIAN
+                - PERMIT
 
     LocalCost:
       description: Information about the money cost of this segment in local currency. Missing when price doesn't apply (e.g. walking) or is unknown.
@@ -1994,10 +1979,10 @@ components:
         location:
           type: object
           properties:
-            lat:
+            latitude:
               type: number
               description: Latitude
-            lng:
+            longitude:
               type: number
               description: Longitude
             bearing:
@@ -2007,8 +1992,8 @@ components:
               # maxValue: 359
               # multipleOf: 1
           required:
-            - lat
-            - lng
+            - latitude
+            - longitude
         components:
           description: Components of this vehicle with additional information. The top level array represents connected parts of the vehicle, which you can't walk through without leaving the vehicle (e.g., two trains connected together). The inner level array represents then parts that can be walked through (e.g., the waggons of a train). A bus would have a `[[component1]]`. A train could have `[[c1, c2, c3, c4], [c5, c6, c7, c8]]`. The arrays are ordered by direction of travel always being left-to-right, i.e., the front of the train is the very last element.
           type: array
@@ -2546,13 +2531,6 @@ components:
                 lat: 59.44123
                 lng: 24.7403
                 name: "Balti jaam 6"
-                # - arrival: 1462331520
-                #   bearing: 152
-                #   code: "10503-1"
-                #   departure: 1462331520
-                #   lat: 59.44349
-                #   lng: 24.75014
-                #   name: "Linnahall"
         required:
           - encodedWaypoints
           - travelled
