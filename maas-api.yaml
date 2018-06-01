@@ -2909,34 +2909,8 @@ components:
             type: boolean
             description: If car park information is available for this segment
 
-    BaseTrip:
+    TripMetrics:
       properties:
-        tripID:
-          type: string
-          description: Internal identifier of this trip, to use with `trip/{id}` endpoints
-        hashCode:
-          type: integer
-          description: Hash code describing content of the trip. Can be passed as `If-None-Match` header to `trip/{id}/update` endpoint.
-        depart:
-          type: string
-          format: date-time
-          description: Departure time in ISO8601 format
-        arrive:
-          type: string
-          format: date-time
-          description: Arrival time at destination in ISO8601 format
-        mainSegmentHashCode:
-          type: integer
-          description:
-            Hash code for the primary segment of this trip, which can
-            be used for giving the trip a name, e.g., "Bus trip".
-        availability:
-          type: string
-          description: Indicates availability of the trip, e.g., if it's too late to book a trip for the requested departure time, or if a scheduled service has been cancelled.
-          enum:
-            - AVAILABLE
-            - MISSED_PREBOOKING_WINDOW
-            - CANCELLED
         caloriesCost:
           type: number
           description: Total active calories used up for the full trip
@@ -2971,6 +2945,42 @@ components:
             An imaginary dollar-equivalent representing the total cost
             for the trip, considering the user's preferences. Should
             only be used for sorting and not shown to the user. Lower is better.
+      required:
+        - hassleCost
+        - carbonCost
+        - caloriesCost
+
+    BaseTrip:
+      properties:
+        tripID:
+          type: string
+          description: Internal identifier of this trip, to use with `trip/{id}` endpoints
+        hashCode:
+          type: integer
+          description: Hash code describing content of the trip. Can be passed as `If-None-Match` header to `trip/{id}/update` endpoint.
+        depart:
+          type: string
+          format: date-time
+          description: Departure time in ISO8601 format
+        arrive:
+          type: string
+          format: date-time
+          description: Arrival time at destination in ISO8601 format
+        mainSegmentHashCode:
+          type: integer
+          description:
+            Hash code for the primary segment of this trip, which can
+            be used for giving the trip a name, e.g., "Bus trip".
+        availability:
+          type: string
+          description: Indicates availability of the trip, e.g., if it's too late to book a trip for the requested departure time, or if a scheduled service has been cancelled.
+          enum:
+            - AVAILABLE
+            - MISSED_PREBOOKING_WINDOW
+            - CANCELLED
+        metrics:
+          $ref: '#/components/schemas/TripMetrics'
+          description: Total active calories used up for the full trip
         temporaryURL:
           type: string
           description: is a way to retrieve a recently computed trip again. If you open it in the browser, it will show the trip in our web app, but the typical use case of this is to send the "Accept" header with value “application/json” to get the trip in JSON format again. The primary use-case for this is when you say want to send the trip from one device to another, when the user is transitioning say from the phone app to viewing to continuing the trip in an in-car system. Those URLs can only be used shortly aftter computing the trip in the first place.
@@ -2992,10 +3002,7 @@ components:
         - arrive
         - mainSegmentHashCode
         - availability
-        - weightedCost
-        - hassleCost
-        - carbonCost
-        - caloriesCost
+        - metrics
 
     Trip:
       allOf:
