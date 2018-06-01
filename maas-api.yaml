@@ -1163,13 +1163,13 @@ components:
           items:
             type: string
           description:
-            Modes for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_tax_FLITWAYS` exactly as returned by `/regions`. If multiple modes are specified only trips which mix at least two of these modes are returned. [Details of single-modal and multi-modal queries are on our developer site](https://developer.tripgo.com/faq/#single-modal-vs-multi-modal-routing).
+            Mode identifiers for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_tax_FLITWAYS` exactly as returned by `/regions`. If multiple modes are specified only trips which mix at least two of these modes are returned. [Details of single-modal and multi-modal queries are on our developer site](https://developer.tripgo.com/faq/#single-modal-vs-multi-modal-routing).
         avoidModes:
           type: array
           items:
             type: string
           description:
-            Public transport modes to avoid. Identifier strings like `pt_pub_bus` exactly as returend by `regionInfo.json`. If multiple modes are specified, all will be avoided. Results can still use these modes if no other public transport mode is suitable.
+            Public transport mode identifiers to avoid. Identifier strings like `pt_pub_bus` exactly as returend by `regionInfo.json`. If multiple modes are specified, all will be avoided. Results can still use these modes if no other public transport mode is suitable.
         avoidStops:
           type: array
           items:
@@ -2045,17 +2045,17 @@ components:
           items:
             type: object
             properties:
-              lat:
+              latitude:
                 type: number
-              lng:
+              longitude:
                 type: number
               title:
                 type: string
               timezone:
                 type: string
             required:
-              - lat
-              - lng
+              - latitude
+              - longitude
               - title
               - timezone
         polygon:
@@ -2083,12 +2083,12 @@ components:
         polygon: SDf9723rhkjFKHAFB
         cities:
           - title: Nuremberg
-            lat: 1.1
-            lng: 14.2
+            latitude: 1.1
+            longitude: 14.2
             timezone: Europe/Berlin
           - title: Erlangen
-            lat: 1.2
-            lng: 15.2
+            latitude: 1.2
+            longitude: 15.2
             timezone: Europe/Berlin
         modeIdentifiers:
           - pt_pub
@@ -2493,9 +2493,9 @@ components:
             items:
               type: object
               properties:
-                lat:
+                latitude:
                   type: number
-                lng:
+                longitude:
                   type: number
                 code:
                   type: string
@@ -2521,15 +2521,15 @@ components:
                   type: boolean
                   description: Is this stop wheelchair accessible? Missing when unknown.
               required:
-                - lat
-                - lng
+                - latitude
+                - longitude
                 - code
               example:
                 bearing: 78
                 code: "21105-6"
                 departure: 1462331280
-                lat: 59.44123
-                lng: 24.7403
+                latitude: 59.44123
+                longitude: 24.7403
                 name: "Balti jaam 6"
         required:
           - encodedWaypoints
