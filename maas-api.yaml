@@ -2914,8 +2914,8 @@ components:
           description: is a way to retrieve a recently computed trip again. If you open it in the browser, it will show the trip in our web app, but the typical use case of this is to send the "Accept" header with value “application/json” to get the trip in JSON format again. The primary use-case for this is when you say want to send the trip from one device to another, when the user is transitioning say from the phone app to viewing to continuing the trip in an in-car system. Those URLs can only be used shortly aftter computing the trip in the first place.
         saveURL:
           type: string
-          description: is used when the trip should stick around for longer. You hit this URL and then get back a persistent URL for the trip. This can be used to share the trip with other people, or to save it to your calendar. That URL then also either shows the trip in our web app, or in JSON format, depending on the request. If a trip was previously saved the JSON will have a shareURL with that URL in it.
-        shareURL:
+          description: is used when the trip should stick around for longer. You hit this URL and then get back a persistent URL for the trip. This can be used to share the trip with other people, or to save it to your calendar. That URL then also either shows the trip in our web app, or in JSON format, depending on the request. If a trip was previously saved the JSON will have a persistentURL with that URL in it.
+        persistentURL:
           type: string
           description: The persistent URL for this trip (obtained after using saveURL)
         updateURL:
@@ -2996,14 +2996,15 @@ components:
 
     SavedTripUrl:
       properties:
-        token:
+        tripID:
           description: unique identifier for the trip
           type: string
-        url:
-          description: url to retrive the trip
+        persistentURL:
+          description: URL to retrieve the trip
           type: string
-        updateUrl:
-          description: url to update the trip, updates a recently computed trip with real-time data. Note that this is only present if we have real-time data for the trip.
+        updateURL:
+          description: URL to update the trip, updates a recently computed trip with real-time data. Note that this is only present if real-time data is available for the trip.
           type: string
       required:
-        - alert
+        - tripID
+        - persistentURL
