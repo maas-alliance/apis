@@ -2,8 +2,6 @@ openapi: 3.0.0
 info:
   version: v0.1
   title: MaaS API
-  x-logo:
-    url: "https://developer.tripgo.com/img/tripgo-api-logo-color.svg"
   description:
     The MaaS API is a spec for a web service that let's you plan door-to-door
     trips using a large variety of public and private transport. It 
@@ -680,7 +678,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/Location'
 
-  /locations.json:
+  /locations:
     get:
       tags:
         - Locations
@@ -727,103 +725,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/InputError'
 
-    post:
-      tags:
-        - Locations
-      summary: POIs for map region (using cell IDs)
-      description: |
-        Gets points of interest for a provided map region. Which POIs are included depends on the enabled modes (by default public transport only). For public transport, transit stops are displayed; for driving, car parks; for bike share, bike share pods; for car share, car share locations; etc.
-
-        This variant using cell IDs is recommended if the client wants to cache locations locally, while frequently calling this endpoint to make sure the local data is update without requiring a lot of data overhead (and having most of the logic on the server). For an explanation, [please see our developer site](https://developer.tripgo.com/faq#locations-cell-ids-and-hash-codes).
-      externalDocs:
-        description: Locations, cell IDs and hash codes
-        url: "https://developer.tripgo.com/faq/#locations-cell-ids-and-hash-codes"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                regionID:
-                  type: string
-                  description: Region code from `/regions` for which to fetch locations from.
-                level:
-                  type: integer
-                  description: 1 to get major locations that should be displayed when zoomed out. 2 to get minor locations that should be displayed when zoomed in.
-                  # minValue: 1
-                  # maxValue: 2
-                  default: 1
-                cellIDs:
-                  type: array
-                  description: When `level` isn't 1, either this or `cellIDHashCodes` is required.
-                  items:
-                    type: string
-                cellIDHashCodes:
-                  type: object
-                  description: When `level` isn't 1, either this or `cellIDs` is required.
-                  properties:
-                    $cellID:
-                      type: integer
-                      description: Key is cell ID. Hash code should be as returned by previous call where you likely used `cellIDs`.
-                cellsPerDegree:
-                  type: integer
-                  default: 75
-                modes:
-                  type: array
-                  description: Mode identifiers for which to include POIs.
-                  default:
-                    - pt_pub
-                  items:
-                    type: string
-              required:
-                - region
-              example:
-                regionID: AU_NSW_Sydney
-                level: 2
-                cellIDs:
-                  - -2540#11340
-                  - -2540#11341
-                  - -2540#11342
-                  - -2541#11340
-                  - -2541#11341
-                  - -2541#11342
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GroupedLocations'
-        400:
-          description: Bad request, most likely due to issues with the input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InputError'
-
-  /locationInfo.json:
+  /locations/{id}/details:
     get:
       tags:
         - Locations
-      summary: Additional details for a coordinate
+      summary: Details for a location
       description:
-        Gets details, including real-time information, for the provided location (either identifier by a coordinate or a unique identifier). Returns what3words information and, if available, a nearby transit stop and car park.
+        Gets details, including real-time information, for the provided location by its ID. Returns what3words information and, if available, a nearby transit stop and car park.
       parameters:
-        - name: lat
-          in: query
-          schema:
-            type: number
-          description: Latitude
-        - name: lng
-          in: query
-          schema:
-            type: number
-          description: Longitude
-        - name: identifier
-          in: query
+        - name: id
+          in: path
+          required: true
           schema:
             type: string
-          description: Unique identifier for this location, required if lat/lng are not provided
+          description: Unique identifier for this location
       responses:
         200:
           description: Successful response
@@ -856,7 +771,7 @@ paths:
                   type: array
                   items:
                     type: string
-                    description: Code of a StopLocation as previously returned by `locations.json`. Currently only a single parent stop is allowed in that list.
+                    description: Code of a StopLocation as previously returned by `/locations`. Currently only a single parent stop is allowed in that list.
                 disembarkationRegionID:
                   type: string
                   description: Region code from `/regions` for the `disembarkationStops` when the region of `embarkationStops` and `disembarkationStops` does not match.
@@ -864,7 +779,7 @@ paths:
                   type: array
                   items:
                     type: string
-                    description: Code of a StopLocation as previously returned by `locations.json`
+                    description: Code of a StopLocation as previously returned by `/locations`
                 timeStamp:
                   type: string
                   format: date-time
@@ -1538,30 +1453,6 @@ components:
           - carPark
           - modeInfo
 
-    NearbyCarParkLocation:
-      allOf:
-      - $ref: '#/components/schemas/CarParkLocation'
-      - type: object
-        properties:
-          additionalWalking:
-            type: object
-            properties:
-              duration:
-                type: integer
-                description: Duration in seconds for walking from car park to destination of segment
-              metres:
-                type: integer
-                description: Distance in metres for walking from car park to destination of segment
-              encodedPath:
-                type: string
-                description: |
-                  Encoded polyline for walking from car park to destination of segment.
-                  Encoded using Google's Encoded Polyline Algorithm. See https://developers.google.com/maps/documentation/utilities/polylinealgorithm.
-            required:
-              - duration
-              - metres
-              - encodedPath
-
     CarPodInfo:
       properties:
         identifier:
@@ -1673,8 +1564,13 @@ components:
 
     LocationInfo:
       allOf:
-      - $ref: '#/components/schemas/Coordinate'
-      - type: object
+        oneOf:
+          - $ref: '#/components/schemas/StopLocation'
+          - $ref: '#/components/schemas/BikePodLocation'
+          - $ref: '#/components/schemas/CarParkLocation'
+          - $ref: '#/components/schemas/CarPodLocation'
+          - $ref: '#/components/schemas/CarRentalLocation'
+        - type: object
         properties:
           details:
             properties:
@@ -1682,54 +1578,30 @@ components:
                 type: string
               w3wInfoURL:
                 type: string
-          stop:
-            $ref: '#/components/schemas/StopLocation'
-          bikePod:
-            $ref: '#/components/schemas/BikePodInfo'
-          carPark:
-            $ref: '#/components/schemas/CarParkInfo'
-        #   carPod:
-        #     $ref: '#/components/schemas/CarPodInfo'
-          carRental:
-            $ref: '#/components/schemas/CarRentalInfo'
 
     GroupedLocations:
       type: object
       properties:
-        groups:
+        bikePods:
           type: array
           items:
-            type: object
-            properties:
-              key:
-                type: string
-                description: cellID
-              hashCode:
-                type: integer
-                description: Hash code of content
-              bikePods:
-                type: array
-                items:
-                  $ref: '#/components/schemas/BikePodLocation'
-              carParks:
-                 type: array
-                 items:
-                   $ref: '#/components/schemas/CarParkLocation'
-              # carPods:
-              #   type: array
-              #   items:
-              #     $ref: '#/components/schemas/CarPodLocation'
-              carRentals:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CarRentalLocation'
-              stops:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StopLocation'
-            required:
-              - key
-              - hashCode
+            $ref: '#/components/schemas/BikePodLocation'
+        carParks:
+           type: array
+           items:
+             $ref: '#/components/schemas/CarParkLocation'
+        carPods:
+          type: array
+          items:
+            $ref: '#/components/schemas/CarPodLocation'
+        carRentals:
+          type: array
+          items:
+            $ref: '#/components/schemas/CarRentalLocation'
+        stops:
+          type: array
+          items:
+            $ref: '#/components/schemas/StopLocation'
 
     ModeInfo:
       properties:
@@ -2591,10 +2463,6 @@ components:
           items:
             description: Hash code of alert; get details from separate alerts dictionary
             type: integer
-        nearbyCarParks:
-          type: array
-          items:
-            $ref: '#/components/schemas/NearbyCarParkLocation'
       required:
         - segmentTemplateHashCode
         - startTime
@@ -2629,7 +2497,7 @@ components:
         modeIdentifier:
           type: string
           description:
-            Mode identifier. Will match input, e.g., `routing.json`'s `modes`. See
+            Mode identifier. Will match input, e.g., `/routing`'s `modes`. See
             https://developer.tripgo.com/faq/#mode-identifiers.
         availability:
           type: string
