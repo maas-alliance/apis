@@ -27,7 +27,6 @@ tags:
   - name: Coverage
   - name: Trip Planning
   - name: Trips
-  - name: Geocode
   - name: Locations
   - name: Public Transport
 
@@ -634,10 +633,10 @@ paths:
         200:
           description: Successful response
 
-  /geocode.json:
+  /geocode:
     get:
       tags:
-        - Geocode
+        - Locations
       summary: Search and autocompletion
       description:
         Gets the transit stops and other POIs matching a provided search
@@ -674,9 +673,15 @@ paths:
                     description: Search term as provided in input
                   choices:
                     type: array
-                    description: Matching results. Might also be of type `StopLocation`.
+                    description: Matching results
                     items:
-                      $ref: '#/components/schemas/Location'
+                      oneOf:
+                      - $ref: '#/components/schemas/Location'
+                      - $ref: '#/components/schemas/StopLocation'
+                      - $ref: '#/components/schemas/BikePodLocation'
+                      - $ref: '#/components/schemas/CarParkLocation'
+                      - $ref: '#/components/schemas/CarPodLocation'
+                      - $ref: '#/components/schemas/CarRentalLocation'
 
   /locations:
     get:
