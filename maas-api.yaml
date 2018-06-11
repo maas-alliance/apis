@@ -129,47 +129,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/RegionDetail'
 
-  /regions/{id}/agencies:
-    get:
-      tags:
-        - Public Transport
-      summary: All agencies for a particular region
-      description:
-        Retrieves detailed information about covered public transport agencies for a specified region.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: modes
-          in: query
-          description: Public transit modes (pt_pub_*) for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_pub_subway`. In absence, all modes are included.          
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-        - name: onlyRealTime
-          in: query
-          description: Boolean to filter only agencies with real-time support. When true, returned agency list will contain only PTA with Real Time service.
-          required: false
-          schema:
-            type: boolean
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ArrayOfAgencies'
-        400:
-          description: Bad request, most likely due to issues with the input or non-posible scenarios.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InputError'
-
   /regions/{id}/alerts:
     get:
       tags:
@@ -202,6 +161,27 @@ paths:
       tags:
         - Public Transport
       summary: All agencies
+      parameters:
+        - name: regionID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: modes
+          in: query
+          description: Public transit modes (pt_pub_*) for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_pub_subway`. In absence, all modes are included.          
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: onlyRealTime
+          in: query
+          description: Boolean to filter only agencies with real-time support. When true, returned agency list will contain only PTA with Real Time service.
+          required: false
+          schema:
+            type: boolean
+
       responses:
         200:
           description: Successful response
@@ -230,7 +210,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Agency' 
 
-  /agencies/{aid}/routes:
+  /routes:
     get:
       tags:
         - Public Transport
@@ -238,8 +218,8 @@ paths:
       description:
         Retrieves detailed information about routes for a specified agency
       parameters:
-        - name: aid
-          in: path
+        - name: agencyID
+          in: query
           required: true
           description: Agency ID
           schema:
@@ -251,121 +231,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RoutesResponse'
-
-  /agencies/{aid}/routes/{rid}/services:
-    get:
-      tags:
-        - Public Transport
-      summary: All services for a particular route
-      description:
-        Retrieves detailed information about services for a particular route
-      parameters:
-        - name: aid
-          in: path
-          required: true
-          description: Agency ID
-          schema:
-            type: string 
-        - name: rid
-          in: path
-          required: true
-          description: Route ID
-          schema:
-            type: string 
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RoutesResponse'
-
-  /agencies/{aid}/services/{sid}:
-    get:
-      tags:
-        - Public Transport
-      summary: Get details of transit service
-      description: |
-        Gets the details of a transit service from the traveller's perspective. This means that it can include multiple shapes if the vehicle is continuing on as a different service at its destination and if travellers can stay on that vehicle.
-      parameters:
-        - name: aid
-          in: path
-          required: true
-          description: Agency ID
-          schema:
-            type: string 
-        - name: sid
-          in: path
-          required: true
-          description: Service ID, as returned by other servlets.
-          schema:
-            type: string 
-        - name: embarkationDate
-          in: query
-          schema:
-            type: string
-            format: date-time
-          required: true
-          description: Departure time of service in ISO8601 format.
-        - name: encode
-          in: query
-          schema:
-            type: boolean
-            default: false
-          description: Set to `true` to receive waypoints as encoded polyline.
-        - name: startStopCode
-          in: query
-          schema:
-            type: string
-          description: Stop code of embarkation. First stop to be considered "travelled".
-          required: false
-        - name: endStopCode
-          in: query
-          schema:
-            type: string
-          description: Stop code of disembarkation. Last stop to be considered "travelled".
-          required: false
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  shapes:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ServiceShape'
-                  realTimeStatus:
-                    type: string
-                    description: Indicator for whether real-time information is available for this service. Note that even if this says the service is real-time, this does not mean the `startTime` is real-time.
-                    enum:
-                      - IS_REAL_TIME
-                      - CAPABLE
-                      - INCAPABLE
-                  realTimeVehicle:
-                    # description: The vehicle for this specific service.
-                    $ref: '#/components/schemas/RealTimeVehicle'
-                  realTimeAlternativeVehicle:
-                    description: Alternative vehicles for the same route, but not necessarily, this specific service.
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/RealTimeVehicle'
-                  alerts:
-                    description: Service alerts / disruption information that affect this service.
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/RealTimeAlert'
-                  bicycleAccessible:
-                    type: boolean
-                    description: Can you take a bicycle on this service? Missing when unknown.
-                  wheelchairAccessible:
-                    type: boolean
-                    description: |
-                      If this service is wheelchair accessible or not. If this field is missing, this does not mean that it is not accessible, but rather that it is unknown whether it is accessible. Only if the value is present and is `false`, does it mean that the service is not wheelchair accessible.
-
-  /routes/filter:
     post:
       tags:
         - Public Transport
@@ -433,7 +298,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/InputError'
 
-  /services/filter:
+  /services:
+    get:
+      tags:
+        - Public Transport
+      summary: All services for a particular route
+      description:
+        Retrieves detailed information about services for a particular route
+      parameters:
+        - name: agencyID
+          in: query
+          required: true
+          description: Agency ID
+          schema:
+            type: string 
+        - name: routeID
+          in: query
+          required: true
+          description: Route ID
+          schema:
+            type: string 
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServicesResponse'    
     post:
       tags:
         - Public Transport
@@ -494,6 +385,91 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InputError'
+
+  /services/{id}:
+    get:
+      tags:
+        - Public Transport
+      summary: Get details of transit service
+      description: |
+        Gets the details of a transit service from the traveller's perspective. This means that it can include multiple shapes if the vehicle is continuing on as a different service at its destination and if travellers can stay on that vehicle.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Service ID, as returned by other servlets.
+          schema:
+            type: string 
+        - name: agencyID
+          in: query
+          required: true
+          description: Agency ID
+          schema:
+            type: string 
+        - name: embarkationDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+          required: true
+          description: Departure time of service in ISO8601 format.
+        - name: encode
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Set to `true` to receive waypoints as encoded polyline.
+        - name: startStopCode
+          in: query
+          schema:
+            type: string
+          description: Stop code of embarkation. First stop to be considered "travelled".
+          required: false
+        - name: endStopCode
+          in: query
+          schema:
+            type: string
+          description: Stop code of disembarkation. Last stop to be considered "travelled".
+          required: false
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shapes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceShape'
+                  realTimeStatus:
+                    type: string
+                    description: Indicator for whether real-time information is available for this service. Note that even if this says the service is real-time, this does not mean the `startTime` is real-time.
+                    enum:
+                      - IS_REAL_TIME
+                      - CAPABLE
+                      - INCAPABLE
+                  realTimeVehicle:
+                    # description: The vehicle for this specific service.
+                    $ref: '#/components/schemas/RealTimeVehicle'
+                  realTimeAlternativeVehicle:
+                    description: Alternative vehicles for the same route, but not necessarily, this specific service.
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RealTimeVehicle'
+                  alerts:
+                    description: Service alerts / disruption information that affect this service.
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RealTimeAlert'
+                  bicycleAccessible:
+                    type: boolean
+                    description: Can you take a bicycle on this service? Missing when unknown.
+                  wheelchairAccessible:
+                    type: boolean
+                    description: |
+                      If this service is wheelchair accessible or not. If this field is missing, this does not mean that it is not accessible, but rather that it is unknown whether it is accessible. Only if the value is present and is `false`, does it mean that the service is not wheelchair accessible.
 
   /services/realtime:
     post:
@@ -673,7 +649,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Trip'
 
-  /trip/{id}:
+  /trips/{id}:
     get:
       tags:
         - Trips
@@ -700,7 +676,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Trip'
 
-  /trip/{id}/save:
+  /trips/{id}/save:
     get:
       tags:
         - Trips
@@ -727,7 +703,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SavedTripUrl'
 
-  /trip/{id}/update:
+  /trips/{id}/update:
     get:
       tags:
         - Trips
@@ -767,7 +743,7 @@ paths:
         304:
           description: No change, i.e., If-None-Match matches ETag
 
-  /trip/{id}/planned:
+  /trips/{id}/planned:
     post:
       tags:
         - Trips
