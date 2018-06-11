@@ -2441,14 +2441,9 @@ components:
           - travelled
 
     Segment:
-      properties:
-        reference:
-          $ref: '#/components/schemas/SegmentReference'
-        template:
-          $ref: '#/components/schemas/SegmentTemplate'
-      required:
-        - reference
-        - template
+      allOf:
+      - $ref: '#/components/schemas/SegmentReference'
+      - $ref: '#/components/schemas/SegmentTemplate'
 
     SegmentReference:
       description:
