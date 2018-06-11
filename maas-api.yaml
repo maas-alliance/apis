@@ -129,33 +129,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/RegionDetail'
 
-  /regions/{id}/alerts:
-    get:
-      tags:
-        - Public Transport
-        - Real-time
-      summary: Real-time alerts
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  alerts:
-                    $ref: '#/components/schemas/AlertsInfo'
-                required:
-                  - alerts
-        400:
-          description: Bad request due to bad input data
-
   /agencies/:
     get:
       tags:
@@ -476,7 +449,7 @@ paths:
       tags:
         - Public Transport
         - Real-time
-      summary: Real-time information for a transit service
+      summary: Real-time information for transit services
       requestBody:
         content:
           application/json:
@@ -561,6 +534,33 @@ paths:
                         - serviceID
                 required:
                   - services
+
+  /alerts:
+    get:
+      tags:
+        - Public Transport
+        - Real-time
+      summary: Real-time alerts
+      parameters:
+        - name: regionID
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alerts:
+                    $ref: '#/components/schemas/AlertsInfo'
+                required:
+                  - alerts
+        400:
+          description: Bad request due to bad input data
 
   /routing:
     post:
