@@ -1364,9 +1364,13 @@ components:
           type: array
           items:
             type: object
+            externalDocs:
+              url: "https://fiware-datamodels.readthedocs.io/en/latest/Transportation/Vehicle/Vehicle/doc/spec/index.html"
             properties:
               name:
                 type: string
+                externalDocs:
+                  url: "https://schema.org/name"
               description:
                 description: Long-form description of the vehicle
                 type: string
