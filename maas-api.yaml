@@ -95,25 +95,6 @@ paths:
     get:
       tags: 
         - Coverage
-      summary: Covered region
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Region'
-
-  /regions/{id}/details:
-    get:
-      tags: 
-        - Coverage
       summary: Details of a covered region
       parameters:
         - name: id
