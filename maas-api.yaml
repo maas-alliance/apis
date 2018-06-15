@@ -634,9 +634,11 @@ paths:
     get:
       tags:
         - Trips
-      summary: Retrieve previously computed trip
+        - Real-time
+      summary: Retrieve trip (incl. real-time data)
       description:
-        Retrieves previously computed trip. **Important:** These will
+        Retrieves previously computed trip, updatest with latest available
+        real-time data. **Important:** These will
         only be valid for the typical duration of a session. To save
         a trip for later use, use the `save` endpoint.
 
@@ -649,6 +651,12 @@ paths:
             type: string
           required: true
           description: Identifier of trip as returned by previous server call.
+        - name: If-None-Match
+          in: header
+          required: false
+          description: Trip's ETag (e.g., hash code) of your last response. If this is supplied the response might return a 304, if the data has not changed.
+          schema:
+            type: string      
       responses:
         200:
           description: Successful response
@@ -656,6 +664,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Trip'
+          headers:
+            ETag:
+              description: ETag (e.g., hash code) of the content of the response. You can pass this as an input header, if you only want to get content in the response if the data has changed.
+              schema:
+                type: string            
+        304:
+          description: No change, i.e., If-None-Match matches ETag
 
   /trips/{id}/save:
     get:
@@ -683,46 +698,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SavedTripUrl'
-
-  /trips/{id}/update:
-    get:
-      tags:
-        - Trips
-        - Real-time
-      summary: Update trip with real-time data
-      description:
-        Updates a previously computed trip with latest available real-time
-        data.
-
-        Rather than constructing this URL directly, you should get it
-        from the `updateURL` property from a computed trip.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Identifier of trip as returned by previous server call.
-        - name: If-None-Match
-          in: header
-          required: false
-          description: Trip's ETag (e.g., hash code) of your last response. If this is supplied the response might return a 304, if the data has not changed.
-          schema:
-            type: string
-      responses:
-        200:
-          description: Successful response, with updated trip
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Trip'
-          headers:
-            ETag:
-              description: ETag (e.g., hash code) of the content of the response. You can pass this as an input header, if you only want to get content in the response if the data has changed.
-              schema:
-                type: string            
-        304:
-          description: No change, i.e., If-None-Match matches ETag
 
   /trips/{id}/planned:
     post:
