@@ -1241,32 +1241,36 @@ components:
                       description: Platform number
 
     BikePodInfo:
+      externalDocs:
+        url: "https://fiware-datamodels.readthedocs.io/en/latest/Transportation/Bike/BikeHireDockingStation/doc/spec/index.html"
       properties:
-        identifier:
+        id:
           type: string
-        operator:
+        provider:
           $ref: '#/components/schemas/CompanyInfo'
         inService:
           description: Whether this pod is currently in service (e.g., some might be closed for maintenance or during winter months)
           type: boolean
-        totalSpaces:
+        totalSlotNumber:
           description: Static information of total spaces
           type: integer
-        availableBikes:
+        availableBikeNumber:
           description: |
             Real-time information of available bikes.
 
             Note that this can be *more* than the total spaces for providers that have free-floating bicycles that are left at a station even though there's no bike dock.
           type: integer
-        lastUpdated:
+        timestamp:
           type: string
           format: date-time
-          description: Timestamp `availableBikes` got recorded in ISO8601 format
+          description: Timestamp `availableBikeNumber` got recorded in ISO8601 format
+        openingHours:
+          $ref: '#/components/schemas/OpeningHours'
         source:
           $ref: '#/components/schemas/DataSourceAttribution'
       required:
-        - identifier
-        - operator
+        - id
+        - provider
 
     BikePodLocation:
       allOf:
@@ -1282,25 +1286,37 @@ components:
           - modeInfo
 
     CarParkInfo:
+      externalDocs:
+        url: "https://fiware-datamodels.readthedocs.io/en/latest/Parking/OffStreetParking/doc/spec/index.html"
       properties:
-        identifier:
+        id:
           type: string
         name:
           type: string
+          externalDocs:
+            url: "https://schema.org/name"
         address:
           type: string
-        operator:
+          externalDocs:
+            url: "https://schema.org/address"
+        provider:
           $ref: '#/components/schemas/CompanyInfo'
-        totalSpaces:
+        totalSpotNumber:
           description: Static information of total spaces
           type: integer
-        availableSpaces:
+        availableSpotNumber:
           description: Real-time information of available spaces
           type: integer
-        lastUpdated:
+        timestamp:
           type: string
           format: date-time
-          description: Timestamp `availableSpaces` got recorded in ISO8601 format
+          description: Timestamp `availableSpotNumber` got recorded in ISO8601 format
+        openingHours:
+          $ref: '#/components/schemas/OpeningHours'
+        pricingTable:
+          type: array
+          items:
+            $ref: '#/components/schemas/PricingTable'
         onStreetParking:
           type: boolean
         encodedParkingArea:
@@ -1308,12 +1324,6 @@ components:
           description: |
             Encoded polygon (or polyline) of parking area. Typically a polyline for on-street parking and a polygon for off-street parking.
             Encoded using Google's Encoded Polyline Algorithm. See https://developers.google.com/maps/documentation/utilities/polylinealgorithm.
-        openingHours:
-          $ref: '#/components/schemas/OpeningHours'
-        pricingTable:
-          type: array
-          items:
-            $ref: '#/components/schemas/PricingTable'
         restrictions:
           $ref: '#/components/schemas/Restrictions'
           type: object
@@ -1327,7 +1337,7 @@ components:
           type: string
           description: Additional information about this car park.
       required:
-        - identifier
+        - id
         - name
         - address
 
@@ -1346,9 +1356,9 @@ components:
 
     CarPodInfo:
       properties:
-        identifier:
+        id:
           type: string
-        operator:
+        provider:
           $ref: '#/components/schemas/CompanyInfo'
         vehicles:
           type: array
@@ -1375,8 +1385,8 @@ components:
               pricingTable:
                 $ref: '#/components/schemas/PricingTable'
       required:
-        - identifier
-        - operator
+        - id
+        - provider
         - vehicles
 
     CarPodLocation:
@@ -1394,17 +1404,17 @@ components:
 
     CarRentalInfo:
       properties:
-        identifier:
+        id:
           type: string
-        company:
+        provider:
           $ref: '#/components/schemas/CompanyInfo'
         openingHours:
           $ref: '#/components/schemas/OpeningHours'
         source:
           $ref: '#/components/schemas/DataSourceAttribution'
       required:
-        - identifier
-        - company
+        - id
+        - provider
 
     CarRentalLocation:
       allOf:
@@ -1420,6 +1430,8 @@ components:
           - modeInfo
 
     CompanyInfo:
+      externalDocs:
+        url: "https://schema.org/provider"
       properties:
         name:
           type: string
@@ -1427,7 +1439,7 @@ components:
           type: string
         website:
           type: string
-        images:
+        logos:
           type: array
           items:
             $ref: '#/components/schemas/ImageObject'
@@ -1503,7 +1515,7 @@ components:
         providerURL:
           description: URL to website of transport provider of this mode
           type: string
-        images:
+        logos:
           type: array
           items:
             $ref: '#/components/schemas/ImageObject'
@@ -1717,7 +1729,7 @@ components:
         url:
           type: string
           description: URL with more information about the disruption
-        images:
+        icons:
           type: array
           items:
             $ref: '#/components/schemas/ImageObject'
