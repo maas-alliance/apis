@@ -1427,10 +1427,10 @@ components:
           type: string
         website:
           type: string
-        remoteIcon:
-          type: string
-        remoteDarkIcon:
-          type: string
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageObject'
         color:
           $ref: '#/components/schemas/RGBColor'
       required:
@@ -1503,12 +1503,10 @@ components:
         providerURL:
           description: URL to website of transport provider of this mode
           type: string
-        remoteIcon:
-          description: Part of icon file name that can be fetched from server.
-          type: string
-        remoteDarkIcon:
-          description: Part of icon file name for dark background that can be  fetched from server.
-          type: string
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageObject'
         color:
           $ref: '#/components/schemas/RGBColor'
       required:
@@ -1670,6 +1668,31 @@ components:
         - accuracy
         - currency
 
+    ImageObject:
+      description: Image stored remotely
+      externalDocs:
+        url: "http://schema.org/ImageObject"
+      properties:
+        caption:
+          type: string
+          description: The caption for this object
+        contentUrl:
+          type: string
+          description: URL to download image
+        fileFormat:
+          type: string
+          description: Media type of image
+          externalDocs:
+            url: "http://schema.org/fileFormat"
+        width:
+          type: integer
+          description: Width in pixels
+        height:
+          type: integer
+          description: Height in pixels
+      required:
+        - contentUrl
+
     RealTimeAlert:
       description:
         An alert or warning, typically used for services, trip segments, or stop locations.
@@ -1694,9 +1717,10 @@ components:
         url:
           type: string
           description: URL with more information about the disruption
-        remoteIcon:
-          description: Part of icon file name that can be fetched from server.
-          type: string
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageObject'
         location:
           $ref: '#/components/schemas/Location'
         action:
@@ -1948,7 +1972,6 @@ components:
                     green: 132
                     red: 19
                   identifier: me_car-p_BlaBlaCar
-                  remoteIcon: blablacar
                   providerURL: https://www.blablacar.com
             me_car-r:
               modeInfo:
@@ -2006,7 +2029,6 @@ components:
                     green: 0
                     red: 0
                   identifier: ps_tax_MYTAXI
-                  remoteIcon: mytaxi
                 url: https://mytaxi.com
             ps_tnc:
               modeInfo:
@@ -2038,7 +2060,6 @@ components:
                     green: 103
                     red: 0
                   identifier: pt_pub_subway
-                  remoteIcon: subway-germany
                 agencyIDs:
                 - VGN
               - modeInfo:
@@ -2803,3 +2824,4 @@ components:
       required:
         - tripID
         - persistentURL
+
