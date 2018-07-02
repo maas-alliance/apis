@@ -97,6 +97,11 @@ paths:
             format: >-
               enum - BOOKED - CANCELLED - PAID - UPDATE_REQUESTED - UPDATED -
               STARTED - FINISHED
+        - name: startTime
+          in: query
+          schema:
+            type: string
+            format: date-time
       responses:
         '200':
           description: The bookings matching the query
