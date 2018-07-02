@@ -23,7 +23,7 @@ tags:
       TSP.
     externalDocs:
       description: Booking scenarios
-      url: 'https://github.com/maasglobal/maas-tsp-api/blob/master/specs/Booking.md'
+      url: 'https://github.com/maas-alliance/apis/blob/booking-api/docs/booking.md'
   - name: Listing
     description: >-
       Before a booking can be made via a TSP, available options at a given
