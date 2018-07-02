@@ -65,7 +65,6 @@ paths:
           content:
             application/json:
               schema:
-                name: options
                 type: array
                 description: Available transport options for the queried TSP
                 items:
