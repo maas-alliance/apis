@@ -94,9 +94,14 @@ paths:
           required: true
           schema:
             type: string
-            format: >-
-              enum - BOOKED - CANCELLED - PAID - UPDATE_REQUESTED - UPDATED -
-              STARTED - FINISHED
+            enum: 
+              - BOOKED
+              - CANCELLED
+              - PAID
+              - UPDATE_REQUESTED
+              - UPDATED
+              - STARTED
+              - FINISHED
         - name: startTime
           in: query
           schema:
