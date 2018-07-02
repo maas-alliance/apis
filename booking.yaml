@@ -6,7 +6,7 @@ info:
   description: >
     This is a API specification of REST endpoints that a Transport Service
     Provider (TSP) should implement to receive messages from MaaS Operator(s). It is written
-    in machine readable [Swagger](http://swagger.io/) format, so that API
+    in machine readable [OpenAPI Specification](https://www.openapis.org/) format, so that API
     endpoints, validators and test clients can be generated from the
     documentation.
   contact:
