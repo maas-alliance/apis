@@ -1,7 +1,7 @@
 openapi: 3.0.0
 servers: []
 info:
-  version: 0.1
+  version: 0.1.0
   title: Booking API
   description: >
     This is a API specification of REST endpoints that a Transport Service
