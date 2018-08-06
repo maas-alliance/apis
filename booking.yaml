@@ -136,7 +136,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-      x-serverless-endpoint: echo~GET
     post:
       description: >-
         Creates a new `Booking` for the TSP in **booked** state. The returned
