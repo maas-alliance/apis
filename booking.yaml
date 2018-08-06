@@ -314,9 +314,11 @@ components:
           description: The identifier MaaS will be using to referring to the booking
           type: string
         state:
-          $ref: '#/components/schemas/bookingState'
+          description: The state of the booking (e.g. 'complete', 'cancelled')
+          type: string
         terms:
-          $ref: '#/components/schemas/bookingState'
+          description: Any additional terms related to the booking (e.g. terms of service)
+          type: string
         token:
           $ref: '#/components/schemas/token'
         meta:
