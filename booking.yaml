@@ -383,7 +383,7 @@ components:
           description: Phone number that the customer may be reached from
           type: string
     options:
-      type: object
+      type: array
       description: Containing an array of available options matching the query
       properties:
         leg:
