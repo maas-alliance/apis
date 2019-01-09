@@ -323,6 +323,10 @@ components:
         meta:
           description: Arbitrary metadata that a TSP can add
           type: object
+        leg:
+          $ref: '#/components/schemas/leg'
+        customer:
+          $ref: '#/components/schemas/customer'
       required:
         - id
         - state
