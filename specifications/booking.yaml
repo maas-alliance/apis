@@ -28,11 +28,10 @@ tags:
     description: >-
       Before a booking can be made via a TSP, available options at a given
       location can be listed as follows
-security:
-  - key: []
 paths:
   /bookings/options/:
     get:
+      operationId: api.bookings_options_get
       description: >-
         Returns available transport options for given coordinates. Start time
         can be defined, but is optional. If startTime is not provided, but
@@ -84,6 +83,7 @@ paths:
                 $ref: '#/components/schemas/error'
   /bookings/:
     get:
+      operationId: api.bookings_get
       description: Returns the `Booking` that has been created earlier
       tags:
         - Booking
@@ -137,6 +137,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
     post:
+      operationId: api.bookings_post
       description: >-
         Creates a new `Booking` for the TSP in **booked** state. The returned
         object will be a refrence that is passed back & forth throughout the
@@ -185,6 +186,7 @@ paths:
       parameters: []
   '/bookings/{id}':
     get:
+      operationId: api.bookings_id_get
       description: Returns the `Bookings` that have been created through the system.
       tags:
         - Booking
@@ -227,6 +229,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
     put:
+      operationId: api.bookings_id_put
       description: >-
         Modifies the state of a `Booking`, e.g. **cancels**, **pays** or
         **reschedules** it. The previous booking information is passed forward
@@ -323,6 +326,10 @@ components:
         meta:
           description: Arbitrary metadata that a TSP can add
           type: object
+        leg:
+          $ref: '#/components/schemas/leg'
+        customer:
+          $ref: '#/components/schemas/customer'
       required:
         - id
         - state
