@@ -28,8 +28,6 @@ tags:
     description: >-
       Before a booking can be made via a TSP, available options at a given
       location can be listed as follows
-security:
-  - key: []
 paths:
   /bookings/options/:
     get:
