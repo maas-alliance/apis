@@ -3,9 +3,9 @@ def bookings_options_get(message):
     return 'Message: {}'.format(message), 200
 
 
-def bookings_get(message):
+def bookings_get(state):
     # do something
-    return 'Message: {}'.format(message), 200
+    print(state)
 
 
 def bookings_post(message):
