@@ -1,0 +1,399 @@
+openapi: 3.0.0
+info:
+  description:
+    API Example for ticket sales. The API provides methods for checking the
+    availability and pricing of tickets, to identify the user and to deliver the
+    digital ticket in various formats. The API does not handle routing and
+    relies on unique itinerary id provided by external routing API before 
+    calling the ticket query.
+  version: "0.1.0-oas3"
+  title: Ticket API
+  contact:
+    name: FLOU
+    url: 'https://www.flou.io/'
+    email: sami.makinen@flou.io
+  license:
+    name: CC BY 4.0
+    url: 'https://creativecommons.org/licenses/by/4.0/'
+tags:
+  - name: purchase
+    description: Handle ticket queries and purchases
+paths:
+  /tickets/query:
+    post:
+      tags:
+        - purchase
+      summary: Query available transactions
+      description: List available ticket options for the specified itinerary
+      operationId: queryTransactions
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/transactions'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/transactions'
+        '400':
+          description: Invalid query parameter
+        '403':
+          description: Query forbidden
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/query-parameters'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/query-parameters'
+  /tickets/confirm:
+    post:
+      tags:
+        - purchase
+      summary: Confirm transaction
+      description: Confirm provided transaction and receive a ticket product
+      operationId: condirmTransaction
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ticket-response'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticket-response'
+        '400':
+          description: Invalid parameters
+        '403':
+          description: Transaction denied
+        '404':
+          description: Service not found
+      requestBody:
+        content:
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/confirm-parameters'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/confirm-parameters'
+
+components:
+  schemas:
+    geo-point:
+      type: object
+      properties:
+        lat:
+          type: number
+          description: Latitude of the point (WGS84)
+        lon:
+          type: number
+          description: Longitude of the point (WGS84)
+    price:
+      type: object
+      properties:
+        currency:
+          type: string
+          enum:
+            - EUR
+        amount:
+          type: string
+    identity:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - PKI
+            - X.509
+            - OAUTH2
+            - CREDIT
+            - PHONE
+            - NAME
+        issuer:
+          type: string
+          format: uri
+        data:
+          type: string
+    query-parameters:
+      type: object
+      properties:
+        ids:
+          description: List of identities the client can authenticate with
+          type: array
+          xml:
+            name: id
+          items:
+            $ref: '#/components/schemas/identity'
+          example:
+            - type: X.509
+              issuer: trusted.org
+              data: 'https://maas.example.com/clients/12345.crt'
+            - type: PHONE
+              issuer: ''
+              data: +000 12 345 6789
+            - type: NAME
+              issuer: ''
+              data: Name Example
+            - type: OAUTH2
+              issuer: maas.example.com
+              data: client12345@maas.example.com
+            - type: OAUTH2
+              issuer: students.example.com
+              data: student12345@students.example.com
+            - type: CREDIT
+              issuer: credit.example.com
+              data: credit-visa
+        supportedTickets:
+          description: List of supported ticket types by the client
+          type: array
+          xml:
+            name: supportedTicket
+          items:
+            type: string
+            enum:
+              - QRCODE
+              - BLE
+              - NFC
+              - SMS
+          example:
+            - QRCODE
+            - NFC
+            - SMS
+        itinrary-id:
+          description: Unique identifier for the itinerary
+          type: string
+          format: uuid
+          example: 2ad16d65-ec14-430d-86a6-95b707258930
+    transaction:
+      type: object
+      properties:
+        id:
+          description: UUID for the transaction
+          type: string
+          format: uuid
+        conditions:
+          description:
+            Free form conditions the user must accept to complete the
+            transaction
+          type: string
+        valid-until:
+          type: string
+          format: date-time
+        price:
+          $ref: '#/components/schemas/price'
+        ticketFormat:
+          type: array
+          description: Ticket types included in the bundle provided by this transaction
+          items:
+            type: string
+            enum:
+              - QRCODE
+              - BLE
+              - NFC
+              - SMS
+        id-challenges:
+          description: The identity challenges the client must complete
+          type: array
+          xml:
+            name: id-challenge
+          items:
+            type: object
+            properties:
+              id:
+                $ref: '#/components/schemas/identity'
+              challenge:
+                description:
+                  Challenge data conencted to the identity challenge. e.g.
+                  nonce, token data, etc.
+                type: string
+    transactions:
+      type: object
+      properties:
+        transactions:
+          type: array
+          xml:
+            name: transaction
+          items:
+            $ref: '#/components/schemas/transaction'
+      example:
+        - id: 5852067e-1591-4003-ab8c-3a3fb8c7e60a
+          conditions:
+            Your MaaS-account will be charged 7.50 € if you accept these
+            conditions...
+          valid-until: '2017-12-01T23:10:23.596Z'
+          price:
+            currency: EUR
+            amount: '7.50'
+          ticket-type:
+            - QRCODE
+          id-challenges:
+            - id:
+                type: OAUTH2
+                issuer: maas.example.com
+                data: client1234@maas.example.com
+              challenge: '750:TSP.EXAMPLE.COM'
+        - id: b561ef18-1342-4301-a204-74e9a6a051ac
+          conditions: Valid student ID is required when traveling...
+          valid-until: '2017-12-01T23:10:23.596Z'
+          price:
+            currency: EUR
+            amount: '5.00'
+          ticket-type:
+            - QRCODE
+          id-challenges:
+            - id:
+                type: OAUTH2
+                issuer: students.example.com
+                data: student12345@students.example.com
+              challenge: 'STUDENT_STATUS:NAME_EXAMPLE'
+            - id:
+                type: CREDIT
+                issuer: credit.example.com
+                data: credit-visa
+              challenge: CARDDETAILS
+        - id: c445f9b4-b472-4fb2-96ac-3200be262301
+          conditions: Credit card will ve charged 10.00 €...
+          valid-until: '2017-12-01T23:10:23.596Z'
+          price:
+            currency: EUR
+            amount: '10.50'
+          ticket-type:
+            - QRCODE
+          id-challenges:
+            - id:
+                type: CREDIT
+                issuer: credit.example.com
+                data: credit-visa
+              challenge: CARDDETAILS
+    confirm-parameters:
+      type: object
+      description: Parameter set for confirming previously received transaction
+      properties:
+        transaction-id:
+          description: UUID of the transaction to confirm
+          type: string
+          format: uuid
+        accept-conditions:
+          type: boolean
+        id-responses:
+          description: Responses for user ID challenges
+          type: array
+          xml:
+            name: id-challenge
+          items:
+            type: object
+            properties:
+              id:
+                $ref: '#/components/schemas/identity'
+              challenge:
+                description: Response
+                type: string
+      example:
+        - transaction-id: c445f9b4-b472-4fb2-96ac-3200be262301
+          accept-conditions: 'true'
+          id-response:
+            - id:
+                type: CREDIT
+                issuer: credit.example.com
+                data: credit-visa
+              response: 'VISA:1234-1234-1234-1234:123:0120'
+    ticket:
+      type: object
+      description: Single ticket product
+      properties:
+        ticket-type:
+          type: string
+          enum:
+            - QRCODE
+            - BLE
+            - NFC
+            - SMS
+        id:
+          type: string
+          description: Unique identifier for the ticket
+          format: uuid
+        included-tickets:
+          type: array
+          description:
+            Other ticket products that can be validated by showing this ticket.
+            e.g. multiple passengers
+          xml:
+            name: included
+          items:
+            type: string
+            format: uuid
+        human-readable:
+          type: string
+          description: Human readable content of the ticket product
+        service-provider-uri:
+          type: string
+          format: uri
+        service-provider-logo:
+          type: string
+          format: uri
+        cancellation:
+          type: object
+          description: Cancellation conditions for the ticket product.
+          properties:
+            url:
+              type: string
+              description: URI to the cancellation service
+              format: uri
+            until:
+              type: string
+              description: Ticket is cancellable until specified time
+              format: date-time
+        valid-from:
+          type: string
+          format: date-time
+        valid-until:
+          type: string
+          format: date-time
+        validity-area:
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - SINGLE_LINE
+                - POLYGON
+            points:
+              xml:
+                name: point
+              type: array
+              items:
+                $ref: '#/components/schemas/geo-point'
+        show-hint-time-from:
+          type: string
+          description: Start time when ticket should be shown as the default ticket
+          format: date-time
+        show-hint-geo:
+          $ref: '#/components/schemas/geo-point'
+        show-hint-ble:
+          type: string
+          format: byte
+          description:
+            The ticket should be shown when a BLE beacon with specified ID is in
+            range
+        ticket-data:
+          type: string
+          format: byte
+          description:
+            Arbitrary data payload connected to the ticket. The content is specified
+            by the actual ticket format used by the operators.
+        nominal-price:
+          $ref: '#/components/schemas/price'
+    ticket-response:
+      type: object
+      description:
+        Ticket product and all related metadata delivered to the client after
+        successful transaction
+      properties:
+        tickets:
+          type: array
+          description: Bundle of ticket valid for the accepted trip
+          items:
+            $ref: '#/components/schemas/ticket'
