@@ -1,0 +1,279 @@
+openapi: 3.0.0
+info:
+  description: 
+    API example for service registry. The API provides methods of distributing
+    and searching metadata related to mobility services. The API provides a way
+    for the service providers to publish their services and the the MaaS-operators
+    and end users to query available services and the user API standards in any 
+    area of interest. The services can be filtered by used API specifications 
+    and the certification proviced by trusted third parties. The API also provides
+    methods for distributing the registered metadata between multiple instances
+    of the service.<br/>
+    <br/>
+    Copyright 2017 FLOU Ltd.
+  version: "0.1.0-oas3"
+  title: Service registry
+  contact:
+    name: FLOU
+    url: 'https://www.flou.io/'
+    email: sami.makinen@flou.io
+  license:
+    name: Apache License 2.0
+    url: 'https://github.com/maas-alliance/apis/LICENSE'
+tags:
+  - name: catalogs
+    description: Handle service catalog registration
+  - name: queries
+    description: Query registered services
+paths:
+  /catalogs/announce:
+    post:
+      tags:
+        - catalogs
+      summary: Add a new service catalog to the registry
+      description: 
+        Announce new service provider to be registered. The services area 
+        registered by providing a link to a service catalog file that specifies
+        the services and APIs provided by the service provides. The Service 
+        Registry will then update its internal database by fetching and parsing
+        the service catalog file.
+      operationId: announceCatalog
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                uri:
+                  description: Location of the service catalog resource to register
+                  type: string
+                  format: catalogUri
+              required:
+                - uri
+      responses:
+        '200':
+          description: Successful operation
+        '403':
+          description: Catalog announcement forbidden
+        '405':
+          description: Invalid input
+  /catalogs/list:
+    get:
+      tags:
+        - catalogs
+      summary: List registered service catalogs
+      description: 
+        List service catalog URIs registered with this service registry. The 
+        query can be used by other Service Registries to mirror the content of
+        another registry.
+      operationId: listCatalogs
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/catalog-listing'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/catalog-listing'
+        '403':
+          description: Catalog listing forbidden
+  /services/find:
+    get:
+      tags:
+        - queries
+      summary: Query registered services
+      description: Receives a list of services fulfilling the specified query criteria.
+      operationId: findServices
+      parameters:
+        - in: query
+          name: lat
+          description: latitude of the user location (WGS84)
+          schema:
+            type: number
+        - in: query
+          name: lon
+          description: longitude of the user location (WGS84)
+          schema:
+            type: number
+        - in: query
+          name: radius
+          description: Radius around the coordinates to search in kilometers
+          schema:
+            type: number
+        - in: query
+          name: certs
+          description:
+            Return only service providers owning the specified certificate
+            in their certificate chain
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - in: query
+          name: types
+          description: Return only services matching the specified types
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - route-gtfs
+                - route-netex
+                - routing-otp
+                - taxi-suti
+                - tickets-lippu
+                - tickets-bob
+                - tickets-ticketapi
+            uniqueItems: true
+        - in: query
+          name: sort
+          description: Sort service providers in specified order
+          schema:
+            type: string
+            uniqueItems: true
+            enum:
+              - rating
+              - popularity
+              - alpha
+        - in: query
+          name: limit
+          description: Limit the maximum of the returned match to the specified number
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/service-catalog'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/service-catalog'
+        '400':
+          description: Invalid query parameter
+        '403':
+          description: Access denied
+        '404':
+          description: Service not found
+
+components:
+  schemas:
+    catalog-listing:
+      type: object
+      properties:
+        catalogs:
+          type: array
+          items:
+            type: string
+            format: uri
+      example:
+        catalogs:
+          - 'https://tsp.example.com/catalog.json'
+          - 'https://maas.example.com/catalogs/services-20170101.json'
+    certificate:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          description:
+            Unique ID for the content of the certificate. The ID is the same for
+            all subjects of this certificate and can be used to query all
+            service providers who have received this certificate.
+          type: string
+          format: uuid
+          example: 75d2b5d5-75e9-4ae7-a60e-e58855fce6ea
+        type:
+          description: The type of the certificate, e.g. X.509
+          type: string
+        issuer:
+          description: The name of the issuer of this certificate
+          type: string
+          example: trusted-tsps.example.com
+        data:
+          description: The content or URI of the actual digitally signed certificate
+          type: string
+          format: uri
+          example: tsp.example.com/certs/trusted-tsp.crt
+        chained:
+          description: The IDs of the chained certificates this certificate includes
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - 75d2b5d5-75e9-4ae7-a60e-e58855fce6ea
+            - 15fd3c5f-f5c5-4dc5-863e-31e323efdc97
+            - bd233d71-27cf-435e-a21f-5c8de3842d3c
+    service-catalog:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 88582147-189b-4b4c-8b5b-444c1466a99d
+        name:
+          type: string
+          example: Example TSP
+        certificates:
+          type: array
+          items:
+            $ref: '#/components/schemas/certificate'
+        catalog:
+          $ref: '#/components/schemas/service'
+    service:
+      type: object
+      properties:
+        valid-from:
+          type: string
+          format: date-time
+          example: 2017-01-01T00:00.000Z
+        valid-until:
+          type: string
+          format: date-time
+          example: 2017-12-31T23:59.999Z
+        catalog:
+          type: array
+          items:
+            type: object
+            xml:
+              name: service
+            properties:
+              type:
+                type: string
+                description: Type of the service API
+                enum:
+                  - route-gtfs
+                  - route-netex
+                  - routing-otp
+                  - taxi-suti
+                  - tickets-lippu
+                  - tickets-bob
+                  - tickets-ticketapi
+              href:
+                type: string
+                format: uri
+                description: API endpoint address
+                example: 'https://tsp.example.com/routing/otp'
+              area:
+                type: string
+                format: GeoJSON
+                description: Geographical area where the service is applicable
+          example:
+            - type: routing-otp
+              href: 'https://tsp.example.com/routing/otp'
+              area: ...GeoJSON...
+            - type: routes-gtfs
+              href: 'https://tsp.example.com/gtfs.zip'
+              area: ...GeoJSON...
+            - type: tickets-ticketapi
+              href: 'https://tsp.example.com/tickets'
+              area: ...GeoJSON...
