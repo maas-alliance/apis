@@ -21,8 +21,8 @@ info:
   license:
     name: Apache License 2.0
     url: "https://github.com/maas-alliance/apis/LICENSE"
-servers:
-  - url: "https://api.tripgo.com/v2"
+# servers:
+#   - url: "https://api.tripgo.com/v2"
 tags:
   - name: Coverage
   - name: Trip Planning
@@ -34,6 +34,7 @@ tags:
 paths:
   /regions:
     get:
+      operationId: coverage.get_regions
       tags: 
         - Coverage
       summary: All covered regions
@@ -63,6 +64,7 @@ paths:
   
   /regions/contain:
     get:
+      operationId: coverage.get_regions_contain
       tags:
         - Coverage
       summary: Coverage check by point(s)
@@ -93,6 +95,7 @@ paths:
 
   /regions/{id}:
     get:
+      operationId: coverage.get_region_by_id
       tags: 
         - Coverage
       summary: Details of a covered region
@@ -110,838 +113,838 @@ paths:
               schema:
                 $ref: '#/components/schemas/RegionDetail'
 
-  /agencies/:
-    get:
-      tags:
-        - Public Transport
-      summary: All agencies
-      parameters:
-        - name: regionID
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: modes
-          in: query
-          description: Public transit modes (pt_pub_*) for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_pub_subway`. In absence, all modes are included.          
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-        - name: onlyRealTime
-          in: query
-          description: Boolean to filter only agencies with real-time support. When true, returned agency list will contain only PTA with Real Time service.
-          required: false
-          schema:
-            type: boolean
+  # /agencies/:
+  #   get:
+  #     tags:
+  #       - Public Transport
+  #     summary: All agencies
+  #     parameters:
+  #       - name: regionID
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: modes
+  #         in: query
+  #         description: Public transit modes (pt_pub_*) for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_pub_subway`. In absence, all modes are included.          
+  #         required: false
+  #         schema:
+  #           type: array
+  #           items:
+  #             type: string
+  #       - name: onlyRealTime
+  #         in: query
+  #         description: Boolean to filter only agencies with real-time support. When true, returned agency list will contain only PTA with Real Time service.
+  #         required: false
+  #         schema:
+  #           type: boolean
 
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ArrayOfAgencies'
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ArrayOfAgencies'
 
-  /agencies/{aid}:
-    get:
-      tags:
-        - Public Transport
-      summary: Public transport agency
-      parameters:
-        - name: aid
-          in: path
-          required: true
-          description: Agency ID
-          schema:
-            type: string
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Agency' 
+  # /agencies/{aid}:
+  #   get:
+  #     tags:
+  #       - Public Transport
+  #     summary: Public transport agency
+  #     parameters:
+  #       - name: aid
+  #         in: path
+  #         required: true
+  #         description: Agency ID
+  #         schema:
+  #           type: string
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Agency' 
 
-  /routes:
-    get:
-      tags:
-        - Public Transport
-      summary: All routes for a particular PTA
-      description:
-        Retrieves detailed information about routes for a specified agency
-      parameters:
-        - name: agencyID
-          in: query
-          required: true
-          description: Agency ID
-          schema:
-            type: string        
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RoutesResponse'
-    post:
-      tags:
-        - Public Transport
-      summary: Filter routes
-      description:
-        Retrieves detailed information about routes for a specified agency & region.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              description: Use `modes` to filter by tranport modes. Only results for the given modes will be retuned. When `full` paramater is false, it will retrieve a list of route IDs for the given region/agency and `modes` and `onlyRealTime` if any. You can also retrieve information for a particular list of routes using `routeIDs` or `routeNames`, providing their IDs (or names) as they were given before as a list member in this very same endpoint. The use of filters like `modes`, `onlyRealTime`, `routeNames` and/or `routeIDs` could lead to a empty response. In order to prevent this, make sure such combinations are posible, using previously fetched information.
-              properties:
-                regionID:
-                  type: string
-                  description: Region id from `/regions`.
-                agencyID:
-                  type: string
-                  description: Agency ID from `/agencies`.
-                modes:
-                  type: array
-                  items:
-                    type: string
-                  description: Public transit modes (pt_pub_*) for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_pub_subway`. In absence, all modes are included.
-                routesIDs:
-                  type: array
-                  items:
-                    type: string
-                    description: Route ID.
-                  description: Route IDs to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `routeNames`.
-                routesNames:
-                  type: array
-                  items:
-                    type: string
-                    description: Route name.
-                  description: Route names to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `routeIDs`.
-                onlyRealTime:
-                  type: boolean
-                  description: Boolean to filter only routes with Real Time support. When true, returned route list will contain only routes with Real Time service.
-                  default: false
-                full:
-                  type: boolean
-                  description: Boolean if result should include full information for route/s or just a list with all their IDs.
-                  default: false
-              required:
-                - region
-                - agencyID
-              example:
-                regionID: US_CA_LosAngeles
-                agencyID: LACMTA_Rail
-                modes:
-                  - pt_pub_tram
-                full: true
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RoutesResponse'
-        400:
-          description: Bad request, most likely due to issues with the input or non-posible scenarios.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InputError'
+  # /routes:
+  #   get:
+  #     tags:
+  #       - Public Transport
+  #     summary: All routes for a particular PTA
+  #     description:
+  #       Retrieves detailed information about routes for a specified agency
+  #     parameters:
+  #       - name: agencyID
+  #         in: query
+  #         required: true
+  #         description: Agency ID
+  #         schema:
+  #           type: string        
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/RoutesResponse'
+  #   post:
+  #     tags:
+  #       - Public Transport
+  #     summary: Filter routes
+  #     description:
+  #       Retrieves detailed information about routes for a specified agency & region.
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             description: Use `modes` to filter by tranport modes. Only results for the given modes will be retuned. When `full` paramater is false, it will retrieve a list of route IDs for the given region/agency and `modes` and `onlyRealTime` if any. You can also retrieve information for a particular list of routes using `routeIDs` or `routeNames`, providing their IDs (or names) as they were given before as a list member in this very same endpoint. The use of filters like `modes`, `onlyRealTime`, `routeNames` and/or `routeIDs` could lead to a empty response. In order to prevent this, make sure such combinations are posible, using previously fetched information.
+  #             properties:
+  #               regionID:
+  #                 type: string
+  #                 description: Region id from `/regions`.
+  #               agencyID:
+  #                 type: string
+  #                 description: Agency ID from `/agencies`.
+  #               modes:
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #                 description: Public transit modes (pt_pub_*) for which results should be returned. [Mode identifier](https://developer.tripgo.com/faq/#mode-identifiers) strings like `pt_pub` or `pt_pub_subway`. In absence, all modes are included.
+  #               routesIDs:
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #                   description: Route ID.
+  #                 description: Route IDs to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `routeNames`.
+  #               routesNames:
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #                   description: Route name.
+  #                 description: Route names to retrieve information from. In case of any missmatch, it'll return error response. Use either this filter or `routeIDs`.
+  #               onlyRealTime:
+  #                 type: boolean
+  #                 description: Boolean to filter only routes with Real Time support. When true, returned route list will contain only routes with Real Time service.
+  #                 default: false
+  #               full:
+  #                 type: boolean
+  #                 description: Boolean if result should include full information for route/s or just a list with all their IDs.
+  #                 default: false
+  #             required:
+  #               - region
+  #               - agencyID
+  #             example:
+  #               regionID: US_CA_LosAngeles
+  #               agencyID: LACMTA_Rail
+  #               modes:
+  #                 - pt_pub_tram
+  #               full: true
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/RoutesResponse'
+  #       400:
+  #         description: Bad request, most likely due to issues with the input or non-posible scenarios.
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/InputError'
 
-  /services:
-    get:
-      tags:
-        - Public Transport
-      summary: All services for a particular route
-      description:
-        Retrieves detailed information about services for a particular route
-      parameters:
-        - name: agencyID
-          in: query
-          required: true
-          description: Agency ID
-          schema:
-            type: string 
-        - name: routeID
-          in: query
-          required: true
-          description: Route ID
-          schema:
-            type: string 
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServicesResponse'    
-    post:
-      tags:
-        - Public Transport
-      summary: Filter services
-      description:
-        Retrieves detailed information about services for a specified route.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              description: When `full` paramater is false, it will retrieve a list of service trips IDs for the given route and `onlyRealTime` if any. You can also retrieve information for a particular list of services using `serviceIDs`.
-              properties:
-                regionID:
-                  type: string
-                  description: Region id from `/regions`.
-                agencyID:
-                  type: string
-                  description: Agency ID from `info/agency.json`.
-                routeID:
-                  type: string
-                  description: Route ID from `info/route.json`.
-                serviceIDs:
-                  type: array
-                  items:
-                    type: string
-                    description: Service trip ID.
-                  description: IDs to retrieve information from. In case of any missmatch, it'll return error response.
-                onlyRealTime:
-                  type: boolean
-                  description: Boolean to filter only services with Real Time support. When true, returned service list will contain only services with Real Time support.
-                  default: false
-                full:
-                  type: boolean
-                  description: Boolean if result should include full information for service/s or just a list with only `id` field in response.
-                  default: false
-              required:
-                - region
-                - agencyID
-                - routeID
-              example:
-                regionID: US_CA_LosAngeles
-                agencyID: LACMTA_Rail
-                routeID:  806
-                serviceIDs:
-                  - 40358027
-                full: true
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServicesResponse'
-        400:
-          description: Bad request, most likely due to issues with the input or non-posible scenarios.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InputError'
+  # /services:
+  #   get:
+  #     tags:
+  #       - Public Transport
+  #     summary: All services for a particular route
+  #     description:
+  #       Retrieves detailed information about services for a particular route
+  #     parameters:
+  #       - name: agencyID
+  #         in: query
+  #         required: true
+  #         description: Agency ID
+  #         schema:
+  #           type: string 
+  #       - name: routeID
+  #         in: query
+  #         required: true
+  #         description: Route ID
+  #         schema:
+  #           type: string 
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ServicesResponse'    
+  #   post:
+  #     tags:
+  #       - Public Transport
+  #     summary: Filter services
+  #     description:
+  #       Retrieves detailed information about services for a specified route.
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             description: When `full` paramater is false, it will retrieve a list of service trips IDs for the given route and `onlyRealTime` if any. You can also retrieve information for a particular list of services using `serviceIDs`.
+  #             properties:
+  #               regionID:
+  #                 type: string
+  #                 description: Region id from `/regions`.
+  #               agencyID:
+  #                 type: string
+  #                 description: Agency ID from `info/agency.json`.
+  #               routeID:
+  #                 type: string
+  #                 description: Route ID from `info/route.json`.
+  #               serviceIDs:
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #                   description: Service trip ID.
+  #                 description: IDs to retrieve information from. In case of any missmatch, it'll return error response.
+  #               onlyRealTime:
+  #                 type: boolean
+  #                 description: Boolean to filter only services with Real Time support. When true, returned service list will contain only services with Real Time support.
+  #                 default: false
+  #               full:
+  #                 type: boolean
+  #                 description: Boolean if result should include full information for service/s or just a list with only `id` field in response.
+  #                 default: false
+  #             required:
+  #               - region
+  #               - agencyID
+  #               - routeID
+  #             example:
+  #               regionID: US_CA_LosAngeles
+  #               agencyID: LACMTA_Rail
+  #               routeID:  806
+  #               serviceIDs:
+  #                 - 40358027
+  #               full: true
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ServicesResponse'
+  #       400:
+  #         description: Bad request, most likely due to issues with the input or non-posible scenarios.
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/InputError'
 
-  /services/{id}:
-    get:
-      tags:
-        - Public Transport
-      summary: Get details of transit service
-      description: |
-        Gets the details of a transit service from the traveller's perspective. This means that it can include multiple shapes if the vehicle is continuing on as a different service at its destination and if travellers can stay on that vehicle.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: Service ID, as returned by other servlets.
-          schema:
-            type: string 
-        - name: agencyID
-          in: query
-          required: true
-          description: Agency ID
-          schema:
-            type: string 
-        - name: embarkationDate
-          in: query
-          schema:
-            type: string
-            format: date-time
-          required: true
-          description: Departure time of service in ISO8601 format.
-        - name: encode
-          in: query
-          schema:
-            type: boolean
-            default: false
-          description: Set to `true` to receive waypoints as encoded polyline.
-        - name: startStopCode
-          in: query
-          schema:
-            type: string
-          description: Stop code of embarkation. First stop to be considered "travelled".
-          required: false
-        - name: endStopCode
-          in: query
-          schema:
-            type: string
-          description: Stop code of disembarkation. Last stop to be considered "travelled".
-          required: false
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  shapes:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ServiceShape'
-                  realTimeStatus:
-                    type: string
-                    description: Indicator for whether real-time information is available for this service. Note that even if this says the service is real-time, this does not mean the `startTime` is real-time.
-                    enum:
-                      - IS_REAL_TIME
-                      - CAPABLE
-                      - INCAPABLE
-                  realTimeVehicle:
-                    # description: The vehicle for this specific service.
-                    $ref: '#/components/schemas/RealTimeVehicle'
-                  realTimeAlternativeVehicle:
-                    description: Alternative vehicles for the same route, but not necessarily, this specific service.
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/RealTimeVehicle'
-                  alerts:
-                    description: Service alerts / disruption information that affect this service.
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/RealTimeAlert'
-                  bicycleAccessible:
-                    type: boolean
-                    description: Can you take a bicycle on this service? Missing when unknown.
-                  wheelchairAccessible:
-                    type: boolean
-                    description: |
-                      If this service is wheelchair accessible or not. If this field is missing, this does not mean that it is not accessible, but rather that it is unknown whether it is accessible. Only if the value is present and is `false`, does it mean that the service is not wheelchair accessible.
+  # /services/{id}:
+  #   get:
+  #     tags:
+  #       - Public Transport
+  #     summary: Get details of transit service
+  #     description: |
+  #       Gets the details of a transit service from the traveller's perspective. This means that it can include multiple shapes if the vehicle is continuing on as a different service at its destination and if travellers can stay on that vehicle.
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         required: true
+  #         description: Service ID, as returned by other servlets.
+  #         schema:
+  #           type: string 
+  #       - name: agencyID
+  #         in: query
+  #         required: true
+  #         description: Agency ID
+  #         schema:
+  #           type: string 
+  #       - name: embarkationDate
+  #         in: query
+  #         schema:
+  #           type: string
+  #           format: date-time
+  #         required: true
+  #         description: Departure time of service in ISO8601 format.
+  #       - name: encode
+  #         in: query
+  #         schema:
+  #           type: boolean
+  #           default: false
+  #         description: Set to `true` to receive waypoints as encoded polyline.
+  #       - name: startStopCode
+  #         in: query
+  #         schema:
+  #           type: string
+  #         description: Stop code of embarkation. First stop to be considered "travelled".
+  #         required: false
+  #       - name: endStopCode
+  #         in: query
+  #         schema:
+  #           type: string
+  #         description: Stop code of disembarkation. Last stop to be considered "travelled".
+  #         required: false
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 shapes:
+  #                   type: array
+  #                   items:
+  #                     $ref: '#/components/schemas/ServiceShape'
+  #                 realTimeStatus:
+  #                   type: string
+  #                   description: Indicator for whether real-time information is available for this service. Note that even if this says the service is real-time, this does not mean the `startTime` is real-time.
+  #                   enum:
+  #                     - IS_REAL_TIME
+  #                     - CAPABLE
+  #                     - INCAPABLE
+  #                 realTimeVehicle:
+  #                   # description: The vehicle for this specific service.
+  #                   $ref: '#/components/schemas/RealTimeVehicle'
+  #                 realTimeAlternativeVehicle:
+  #                   description: Alternative vehicles for the same route, but not necessarily, this specific service.
+  #                   type: array
+  #                   items:
+  #                     $ref: '#/components/schemas/RealTimeVehicle'
+  #                 alerts:
+  #                   description: Service alerts / disruption information that affect this service.
+  #                   type: array
+  #                   items:
+  #                     $ref: '#/components/schemas/RealTimeAlert'
+  #                 bicycleAccessible:
+  #                   type: boolean
+  #                   description: Can you take a bicycle on this service? Missing when unknown.
+  #                 wheelchairAccessible:
+  #                   type: boolean
+  #                   description: |
+  #                     If this service is wheelchair accessible or not. If this field is missing, this does not mean that it is not accessible, but rather that it is unknown whether it is accessible. Only if the value is present and is `false`, does it mean that the service is not wheelchair accessible.
 
-  /realtime/alerts:
-    get:
-      tags:
-        - Public Transport
-        - Real-time
-      summary: Real-time alerts
-      parameters:
-        - name: regionID
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  alerts:
-                    $ref: '#/components/schemas/AlertsInfo'
-                required:
-                  - alerts
-        400:
-          description: Bad request due to bad input data
+  # /realtime/alerts:
+  #   get:
+  #     tags:
+  #       - Public Transport
+  #       - Real-time
+  #     summary: Real-time alerts
+  #     parameters:
+  #       - name: regionID
+  #         in: query
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 alerts:
+  #                   $ref: '#/components/schemas/AlertsInfo'
+  #               required:
+  #                 - alerts
+  #       400:
+  #         description: Bad request due to bad input data
 
-  /realtime/services:
-    post:
-      tags:
-        - Public Transport
-        - Real-time
-      summary: Real-time information for transit services
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                regionID:
-                  type: string
-                  description: Region code from `/regions` for which to fetch the real-time information.
-                services:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      agencyID:
-                        type: string
-                      serviceID:
-                        type: string
-                      startStopCode:
-                        type: string
-                      startTime:
-                        type: string
-                        format: date-time
-                        description: Departure time at `startStopCode` in ISO8601 format. The parameter is optional, but highly recommended. If you don't get real-time data, add this parameter.
-                      endStopCode:
-                        type: string
-                    required:
-                      - agencyID
-                      - serviceID
-                      - startStopCode
-              required:
-                - region
-                - services
-              example:
-                regionID: AU_NSW_Sydney
-                services:
-                  - agencyID: Sydney Buses
-                    serviceID: "76641565_20160307_11954"
-                    startStopCode: "2035143"
-                  - agencyID: Sydney Buses
-                    serviceID: "76640498_20160307_11954"
-                    startStopCode: "2035143"
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  services:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        serviceID:
-                          type: string
-                        startStopCode:
-                          type: string
-                        startTime:
-                          type: string
-                          format: date-time
-                          description: Predicted departure time based on real-time information in ISO8601 format.
-                        lastUpdate:
-                          type: string
-                          format: date-time
-                          description: Time the departure/arrival time prediction was made in ISO8601 format.
-                        realTimeVehicle:
-                          # description: The vehicle for this specific service.
-                          $ref: '#/components/schemas/RealTimeVehicle'
-                        realTimeAlternativeVehicle:
-                          description: Alternative vehicles for the same route, but not necessarily, this specific service.
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/RealTimeVehicle'
-                        alerts:
-                          description: Service alerts / disruption information that affect this service.
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/RealTimeAlert'
-                      required:
-                        - serviceID
-                required:
-                  - services
+  # /realtime/services:
+  #   post:
+  #     tags:
+  #       - Public Transport
+  #       - Real-time
+  #     summary: Real-time information for transit services
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               regionID:
+  #                 type: string
+  #                 description: Region code from `/regions` for which to fetch the real-time information.
+  #               services:
+  #                 type: array
+  #                 items:
+  #                   type: object
+  #                   properties:
+  #                     agencyID:
+  #                       type: string
+  #                     serviceID:
+  #                       type: string
+  #                     startStopCode:
+  #                       type: string
+  #                     startTime:
+  #                       type: string
+  #                       format: date-time
+  #                       description: Departure time at `startStopCode` in ISO8601 format. The parameter is optional, but highly recommended. If you don't get real-time data, add this parameter.
+  #                     endStopCode:
+  #                       type: string
+  #                   required:
+  #                     - agencyID
+  #                     - serviceID
+  #                     - startStopCode
+  #             required:
+  #               - region
+  #               - services
+  #             example:
+  #               regionID: AU_NSW_Sydney
+  #               services:
+  #                 - agencyID: Sydney Buses
+  #                   serviceID: "76641565_20160307_11954"
+  #                   startStopCode: "2035143"
+  #                 - agencyID: Sydney Buses
+  #                   serviceID: "76640498_20160307_11954"
+  #                   startStopCode: "2035143"
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 services:
+  #                   type: array
+  #                   items:
+  #                     type: object
+  #                     properties:
+  #                       serviceID:
+  #                         type: string
+  #                       startStopCode:
+  #                         type: string
+  #                       startTime:
+  #                         type: string
+  #                         format: date-time
+  #                         description: Predicted departure time based on real-time information in ISO8601 format.
+  #                       lastUpdate:
+  #                         type: string
+  #                         format: date-time
+  #                         description: Time the departure/arrival time prediction was made in ISO8601 format.
+  #                       realTimeVehicle:
+  #                         # description: The vehicle for this specific service.
+  #                         $ref: '#/components/schemas/RealTimeVehicle'
+  #                       realTimeAlternativeVehicle:
+  #                         description: Alternative vehicles for the same route, but not necessarily, this specific service.
+  #                         type: array
+  #                         items:
+  #                           $ref: '#/components/schemas/RealTimeVehicle'
+  #                       alerts:
+  #                         description: Service alerts / disruption information that affect this service.
+  #                         type: array
+  #                         items:
+  #                           $ref: '#/components/schemas/RealTimeAlert'
+  #                     required:
+  #                       - serviceID
+  #               required:
+  #                 - services
 
-  /routing:
-    post:
-      tags:
-        - Trip Planning
-      summary: A-to-B trips
-      description:
-        Calculates door-to-door trips for the specified mode(s).
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RoutingInput'
+  # /routing:
+  #   post:
+  #     tags:
+  #       - Trip Planning
+  #     summary: A-to-B trips
+  #     description:
+  #       Calculates door-to-door trips for the specified mode(s).
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/RoutingInput'
 
-      responses:
-        200:
-          description: Successful response. Can include many trips.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RoutingResponse'
-        400:
-          description: Bad request, most likely due to issues with the input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InputError'
+  #     responses:
+  #       200:
+  #         description: Successful response. Can include many trips.
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/RoutingResponse'
+  #       400:
+  #         description: Bad request, most likely due to issues with the input
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/InputError'
 
-  /routing/grouped:
-    post:
-      tags:
-        - Trip Planning
-      summary: A-to-B trips (grouped)
-      description:
-        Calculates door-to-door trips for the specified mode(s) which are grouped by their similarity (e.g., same public transport trip at a later time)
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RoutingInput'
+  # /routing/grouped:
+  #   post:
+  #     tags:
+  #       - Trip Planning
+  #     summary: A-to-B trips (grouped)
+  #     description:
+  #       Calculates door-to-door trips for the specified mode(s) which are grouped by their similarity (e.g., same public transport trip at a later time)
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/RoutingInput'
 
-      responses:
-        200:
-          description: Successful response. Can include many trips.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GroupedRoutingResponse'
-        400:
-          description: Bad request, most likely due to issues with the input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InputError'                
+  #     responses:
+  #       200:
+  #         description: Successful response. Can include many trips.
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/GroupedRoutingResponse'
+  #       400:
+  #         description: Bad request, most likely due to issues with the input
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/InputError'                
 
-  /waypoint:
-    post:
-      tags:
-        - Trip Planning
-      summary: A-to-B-via-C trip
-      description: |
-        Calculates a single A-to-B-via-C trip where transport modes can be customised per segment.
+  # /waypoint:
+  #   post:
+  #     tags:
+  #       - Trip Planning
+  #     summary: A-to-B-via-C trip
+  #     description: |
+  #       Calculates a single A-to-B-via-C trip where transport modes can be customised per segment.
 
-        Of the provided trip pattern items in the `waypoints` input, exactly one should have the
-        `time` field set.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                waypoints:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/TripInputPattern'
-                config:
-                  $ref: '#/components/schemas/ConfigInput'
-              required:
-                - config
-                - waypoints
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Trip'
+  #       Of the provided trip pattern items in the `waypoints` input, exactly one should have the
+  #       `time` field set.
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               waypoints:
+  #                 type: array
+  #                 items:
+  #                   $ref: '#/components/schemas/TripInputPattern'
+  #               config:
+  #                 $ref: '#/components/schemas/ConfigInput'
+  #             required:
+  #               - config
+  #               - waypoints
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Trip'
 
-  /trips/{id}:
-    get:
-      tags:
-        - Trips
-        - Real-time
-      summary: Retrieve trip (incl. real-time data)
-      description:
-        Retrieves previously computed trip, updatest with latest available
-        real-time data. **Important:** These will
-        only be valid for the typical duration of a session. To save
-        a trip for later use, use the `save` endpoint.
+  # /trips/{id}:
+  #   get:
+  #     tags:
+  #       - Trips
+  #       - Real-time
+  #     summary: Retrieve trip (incl. real-time data)
+  #     description:
+  #       Retrieves previously computed trip, updatest with latest available
+  #       real-time data. **Important:** These will
+  #       only be valid for the typical duration of a session. To save
+  #       a trip for later use, use the `save` endpoint.
 
-        Rather than constructing this URL directly, you should get it
-        from the `temporaryURL` property from a computed trip.
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-          description: Identifier of trip as returned by previous server call.
-        - name: If-None-Match
-          in: header
-          required: false
-          description: Trip's ETag (e.g., hash code) of your last response. If this is supplied the response might return a 304, if the data has not changed.
-          schema:
-            type: string      
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Trip'
-          headers:
-            ETag:
-              description: ETag (e.g., hash code) of the content of the response. You can pass this as an input header, if you only want to get content in the response if the data has changed.
-              schema:
-                type: string            
-        304:
-          description: No change, i.e., If-None-Match matches ETag
+  #       Rather than constructing this URL directly, you should get it
+  #       from the `temporaryURL` property from a computed trip.
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: Identifier of trip as returned by previous server call.
+  #       - name: If-None-Match
+  #         in: header
+  #         required: false
+  #         description: Trip's ETag (e.g., hash code) of your last response. If this is supplied the response might return a 304, if the data has not changed.
+  #         schema:
+  #           type: string      
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Trip'
+  #         headers:
+  #           ETag:
+  #             description: ETag (e.g., hash code) of the content of the response. You can pass this as an input header, if you only want to get content in the response if the data has changed.
+  #             schema:
+  #               type: string            
+  #       304:
+  #         description: No change, i.e., If-None-Match matches ETag
 
-  /trips/{id}/save:
-    get:
-      tags:
-        - Trips
-      summary: Save trip for later use
-      description:
-        Saves a previously computed trip to the database so that it
-        can get retrieved even after the session expired. Useful for
-        sharing trips.
+  # /trips/{id}/save:
+  #   get:
+  #     tags:
+  #       - Trips
+  #     summary: Save trip for later use
+  #     description:
+  #       Saves a previously computed trip to the database so that it
+  #       can get retrieved even after the session expired. Useful for
+  #       sharing trips.
 
-        Rather than constructing this URL directly, you should get it
-        from the `saveURL` property from a computed trip.
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-          description: Identifier of trip as returned by previous server call.
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SavedTripUrl'
+  #       Rather than constructing this URL directly, you should get it
+  #       from the `saveURL` property from a computed trip.
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: Identifier of trip as returned by previous server call.
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/SavedTripUrl'
 
-  /trips/{id}/planned:
-    post:
-      tags:
-        - Trips
-      summary: Mark trip as planned by a user
-      description:
-        Marks a previously computed trip as being planned by the user.
-        The server will overwrite trips that were previously marked as
-        planned and that overlap the newly planned trip.
+  # /trips/{id}/planned:
+  #   post:
+  #     tags:
+  #       - Trips
+  #     summary: Mark trip as planned by a user
+  #     description:
+  #       Marks a previously computed trip as being planned by the user.
+  #       The server will overwrite trips that were previously marked as
+  #       planned and that overlap the newly planned trip.
 
-        Rather than constructing this URL directly, you should get it
-        from the `plannedURL` property from a computed trip.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Identifier of trip as returned by previous server call.
-        - name: DOCUMENTATION_NOT_COMPLETE
-          in: query
-          schema:
-            type: boolean
-      responses:
-        200:
-          description: Successful response
+  #       Rather than constructing this URL directly, you should get it
+  #       from the `plannedURL` property from a computed trip.
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #         description: Identifier of trip as returned by previous server call.
+  #       - name: DOCUMENTATION_NOT_COMPLETE
+  #         in: query
+  #         schema:
+  #           type: boolean
+  #     responses:
+  #       200:
+  #         description: Successful response
 
-  /geocode:
-    get:
-      tags:
-        - Locations
-      summary: Search and autocompletion
-      description:
-        Gets the transit stops and other POIs matching a provided search
-        string. Optionally does auto completion.
-      parameters:
-        - name: q
-          in: query
-          schema:
-            type: string
-          description: Search term
-          required: true
-        - name: near
-          in: query
-          schema:
-            type: string
-          description: Nearby coordinate as `(lat,lng)` string.
-          required: true
-        - name: a
-          in: query
-          schema:
-            type: boolean
-            default: false
-          description: Set to `true` when results are used for autocompletion.  Note that not all POI sources may be used when this is enabled.
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  query:
-                    type: string
-                    description: Search term as provided in input
-                  choices:
-                    type: array
-                    description: Matching results
-                    items:
-                      oneOf:
-                      - $ref: '#/components/schemas/Location'
-                      - $ref: '#/components/schemas/StopLocation'
-                      - $ref: '#/components/schemas/BikePodLocation'
-                      - $ref: '#/components/schemas/CarParkLocation'
-                      - $ref: '#/components/schemas/CarPodLocation'
-                      - $ref: '#/components/schemas/CarRentalLocation'
+  # /geocode:
+  #   get:
+  #     tags:
+  #       - Locations
+  #     summary: Search and autocompletion
+  #     description:
+  #       Gets the transit stops and other POIs matching a provided search
+  #       string. Optionally does auto completion.
+  #     parameters:
+  #       - name: q
+  #         in: query
+  #         schema:
+  #           type: string
+  #         description: Search term
+  #         required: true
+  #       - name: near
+  #         in: query
+  #         schema:
+  #           type: string
+  #         description: Nearby coordinate as `(lat,lng)` string.
+  #         required: true
+  #       - name: a
+  #         in: query
+  #         schema:
+  #           type: boolean
+  #           default: false
+  #         description: Set to `true` when results are used for autocompletion.  Note that not all POI sources may be used when this is enabled.
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 query:
+  #                   type: string
+  #                   description: Search term as provided in input
+  #                 choices:
+  #                   type: array
+  #                   description: Matching results
+  #                   items:
+  #                     oneOf:
+  #                     - $ref: '#/components/schemas/Location'
+  #                     - $ref: '#/components/schemas/StopLocation'
+  #                     - $ref: '#/components/schemas/BikePodLocation'
+  #                     - $ref: '#/components/schemas/CarParkLocation'
+  #                     - $ref: '#/components/schemas/CarPodLocation'
+  #                     - $ref: '#/components/schemas/CarRentalLocation'
 
-  /locations:
-    get:
-      tags:
-        - Locations
-      summary: POIs for a circular region
-      description: |
-        Gets points of interest for a provided circular region (coordinate + radius). Which POIs are included depends on the enabled modes (by default all modes). For public transport, transit stops are displayed; for driving, car parks; for bike share, bike share pods; for car share, car share locations; etc.
-      parameters:
-        - name: lat
-          in: query
-          schema:
-            type: number
-          description: Latitude
-          required: true
-        - name: lng
-          in: query
-          schema:
-            type: number
-          description: Longitude
-          required: true
-        - name: radius
-          in: query
-          schema:
-            type: number
-          description: Radius in metres
-          required: true
-        - name: modes
-          in: query
-          schema:
-            type: array
-            items:
-              type: string
-          description: Mode identifiers for which to include POIs.
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GroupedLocations'
-        400:
-          description: Bad request, most likely due to issues with the input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InputError'
+  # /locations:
+  #   get:
+  #     tags:
+  #       - Locations
+  #     summary: POIs for a circular region
+  #     description: |
+  #       Gets points of interest for a provided circular region (coordinate + radius). Which POIs are included depends on the enabled modes (by default all modes). For public transport, transit stops are displayed; for driving, car parks; for bike share, bike share pods; for car share, car share locations; etc.
+  #     parameters:
+  #       - name: lat
+  #         in: query
+  #         schema:
+  #           type: number
+  #         description: Latitude
+  #         required: true
+  #       - name: lng
+  #         in: query
+  #         schema:
+  #           type: number
+  #         description: Longitude
+  #         required: true
+  #       - name: radius
+  #         in: query
+  #         schema:
+  #           type: number
+  #         description: Radius in metres
+  #         required: true
+  #       - name: modes
+  #         in: query
+  #         schema:
+  #           type: array
+  #           items:
+  #             type: string
+  #         description: Mode identifiers for which to include POIs.
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/GroupedLocations'
+  #       400:
+  #         description: Bad request, most likely due to issues with the input
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/InputError'
 
-  /locations/{id}/details:
-    get:
-      tags:
-        - Locations
-      summary: Details for a location
-      description:
-        Gets details, including real-time information, for the provided location by its ID. Returns what3words information and, if available, a nearby transit stop and car park.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Unique identifier for this location
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LocationInfo'
+  # /locations/{id}/details:
+  #   get:
+  #     tags:
+  #       - Locations
+  #     summary: Details for a location
+  #     description:
+  #       Gets details, including real-time information, for the provided location by its ID. Returns what3words information and, if available, a nearby transit stop and car park.
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #         description: Unique identifier for this location
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/LocationInfo'
 
-  /departures:
-    post:
-      tags:
-        - Public Transport
-      summary: Departure timetable for stop
-      description: |
-        Gets the departure timetable for a provided list of transit stops. It returns the next `limit` departures after `timeStamp` across any of the provided `embarkationStops`. If multiple stops are provided, the returned services might therefore only cover a subset of the provided stops.
+  # /departures:
+  #   post:
+  #     tags:
+  #       - Public Transport
+  #     summary: Departure timetable for stop
+  #     description: |
+  #       Gets the departure timetable for a provided list of transit stops. It returns the next `limit` departures after `timeStamp` across any of the provided `embarkationStops`. If multiple stops are provided, the returned services might therefore only cover a subset of the provided stops.
 
-        If `disembarkationStops` is provided, then the returned timetable covers only services between any of the embarkation stops and any of the disembarkation stops. If the region of the embarkation stops and the region of the disembarkations stops is not the same, then you must specify the `disembarkationRegionID` of the `disembarkationStops`.
+  #       If `disembarkationStops` is provided, then the returned timetable covers only services between any of the embarkation stops and any of the disembarkation stops. If the region of the embarkation stops and the region of the disembarkations stops is not the same, then you must specify the `disembarkationRegionID` of the `disembarkationStops`.
 
-        Note that the the stop codes in the embarkation stops might *not* match the stop codes provided in the input. This happens if the input specified the stop code of a "parent" station (e.g., a major train station) but all the departures are from one of the parent station's "children" (e.g., a platform of that train station). If that's the case, then the `parentInfo` array will provide additional information on the parent station and its children.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                embarkationRegionID:
-                  type: string
-                  description: Region code from `/regions` for which to fetch the timetable.
-                embarkationStops:
-                  type: array
-                  items:
-                    type: string
-                    description: Code of a StopLocation as previously returned by `/locations`. Currently only a single parent stop is allowed in that list.
-                disembarkationRegionID:
-                  type: string
-                  description: Region code from `/regions` for the `disembarkationStops` when the region of `embarkationStops` and `disembarkationStops` does not match.
-                disembarkationStops:
-                  type: array
-                  items:
-                    type: string
-                    description: Code of a StopLocation as previously returned by `/locations`
-                timeStamp:
-                  type: string
-                  format: date-time
-                  description: Earlest time to include in timetable, in ISO8601 format. Default value is current time.
-                limit:
-                  type: integer
-                  description: Number of services to include in timetable.
-                  default: 50
-              required:
-                - region
-                - embarkationStops
-              example:
-                embarkationRegionID: AU_NSW_Sydney
-                embarkationStops:
-                  - "2035143"
-      responses:
-        200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  embarkationStops:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        stopCode:
-                          type: string
-                        services:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/ServiceDeparture'
-                        wheelchairAccessible:
-                          type: boolean
-                          description: Is this stop wheelchair accessible? Missing when unknown.
-                  parentInfo:
-                    $ref: '#/components/schemas/StopLocationParent'
-                    # type: array
-                    # items:
-                    #   $ref: '#/components/schemas/StopLocationParent'
-                  alerts:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/RealTimeAlert'
-                required:
-                  - embarkationStops
+  #       Note that the the stop codes in the embarkation stops might *not* match the stop codes provided in the input. This happens if the input specified the stop code of a "parent" station (e.g., a major train station) but all the departures are from one of the parent station's "children" (e.g., a platform of that train station). If that's the case, then the `parentInfo` array will provide additional information on the parent station and its children.
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               embarkationRegionID:
+  #                 type: string
+  #                 description: Region code from `/regions` for which to fetch the timetable.
+  #               embarkationStops:
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #                   description: Code of a StopLocation as previously returned by `/locations`. Currently only a single parent stop is allowed in that list.
+  #               disembarkationRegionID:
+  #                 type: string
+  #                 description: Region code from `/regions` for the `disembarkationStops` when the region of `embarkationStops` and `disembarkationStops` does not match.
+  #               disembarkationStops:
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #                   description: Code of a StopLocation as previously returned by `/locations`
+  #               timeStamp:
+  #                 type: string
+  #                 format: date-time
+  #                 description: Earlest time to include in timetable, in ISO8601 format. Default value is current time.
+  #               limit:
+  #                 type: integer
+  #                 description: Number of services to include in timetable.
+  #                 default: 50
+  #             required:
+  #               - region
+  #               - embarkationStops
+  #             example:
+  #               embarkationRegionID: AU_NSW_Sydney
+  #               embarkationStops:
+  #                 - "2035143"
+  #     responses:
+  #       200:
+  #         description: Successful response
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 embarkationStops:
+  #                   type: array
+  #                   items:
+  #                     type: object
+  #                     properties:
+  #                       stopCode:
+  #                         type: string
+  #                       services:
+  #                         type: array
+  #                         items:
+  #                           $ref: '#/components/schemas/ServiceDeparture'
+  #                       wheelchairAccessible:
+  #                         type: boolean
+  #                         description: Is this stop wheelchair accessible? Missing when unknown.
+  #                 parentInfo:
+  #                   $ref: '#/components/schemas/StopLocationParent'
+  #                   # type: array
+  #                   # items:
+  #                   #   $ref: '#/components/schemas/StopLocationParent'
+  #                 alerts:
+  #                   type: array
+  #                   items:
+  #                     $ref: '#/components/schemas/RealTimeAlert'
+  #               required:
+  #                 - embarkationStops
 
-  /arrivals:
-    post:
-      tags:
-        - Public Transport
-      summary: Arrival timetable for stop
-      description:
-        Gets the arrival timetable for a provided transit stop by the stop's ID.
-      parameters:
-        - name: DOCUMENTATION_NOT_COMPLETE
-          in: query
-          schema:
-            type: boolean
-      responses:
-        200:
-          description: Successful response
+  # /arrivals:
+  #   post:
+  #     tags:
+  #       - Public Transport
+  #     summary: Arrival timetable for stop
+  #     description:
+  #       Gets the arrival timetable for a provided transit stop by the stop's ID.
+  #     parameters:
+  #       - name: DOCUMENTATION_NOT_COMPLETE
+  #         in: query
+  #         schema:
+  #           type: boolean
+  #     responses:
+  #       200:
+  #         description: Successful response
 
 
 
@@ -1104,7 +1107,7 @@ components:
             $ref: '#/components/schemas/RealTimeAlert'
       required:
         - groups
-        - segmentTempaltes
+        - segmentTemplates
         - regionIDs
       # example:
       #   regionIDs:
@@ -1145,8 +1148,8 @@ components:
         productID:
           type: string
           description: ID of the product in externalActions (currently only used for Uber and Lyft)
-        confirmation:
-          $ref: 'https://developer.tripgo.com/specs/modules/booking.definitions.yaml#/LocalizedBookingConfirmationInfo'
+        # confirmation:
+        #   $ref: 'https://developer.tripgo.com/specs/modules/booking.definitions.yaml#/LocalizedBookingConfirmationInfo'
       required:
         - title
 
