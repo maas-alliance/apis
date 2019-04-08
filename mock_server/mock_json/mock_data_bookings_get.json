@@ -1,0 +1,96 @@
+[
+    {
+        "customer": {
+        "firstName": "Charlotte",
+        "id": "3464-ae44-4242-ad3f",
+        "lastName": "Rust",
+        "phone": "+44-1"
+        },
+        "leg": {
+        "agencyId": "CoolSharing",
+        "arrivalDelay": 10,
+        "departureDelay": 8,
+        "distance": 9.7,
+        "fare": {},
+        "from": {
+            "lat": 48.7,
+            "lon": 8.38,
+            "name": "Karlsruhe Restaurant",
+            "stopCode": "rest23",
+            "stopId": "9876",
+            "additionalProp1": {}
+        },
+        "legGeometry": {
+            "points": "48.7,8.38,48.71,8.39,48.72,8.39",
+            "additionalProp1": {}
+        },
+        "route": "string",
+        "routeLongName": "tohome",
+        "routeShortName": "to my home location",
+        "to": {
+            "lat": 48.72,
+            "lon": 8.39,
+            "name": "homeofme",
+            "stopCode": "xhome",
+            "stopId": "8887",
+            "additionalProp1": {}
+        },
+        "additionalProp1": {}
+        },
+        "state": "NEW",
+        "id": "c12c-d45d-1165-ad42",
+        "meta": {},
+        "terms": "string",
+        "token": {
+        "meta": {},
+        "validityDuration": {}
+        }
+    },
+    {
+        "customer": {
+        "firstName": "Peter",
+        "id": "6534-2324-2314-ad3f",
+        "lastName": "Smith",
+        "phone": "+44-0"
+        },
+        "leg": {
+        "agencyId": "TaxiKa",
+        "arrivalDelay": 5,
+        "departureDelay": 3,
+        "distance": 11.4,
+        "fare": {},
+        "from": {
+            "lat": 49.0,
+            "lon": 8.4,
+            "name": "Karlsruhe zoo",
+            "stopCode": "zooka",
+            "stopId": "1234",
+            "additionalProp1": {}
+        },
+        "legGeometry": {
+            "points": "49.0,8.4,49.01,8.41,49.02,8.39",
+            "additionalProp1": {}
+        },
+        "route": "string",
+        "routeLongName": "toBusiness",
+        "routeShortName": "to my current meeting",
+        "to": {
+            "lat": 49.02,
+            "lon": 8.3,
+            "name": "company X",
+            "stopCode": "xcomp",
+            "stopId": "6542",
+            "additionalProp1": {}
+        },
+        "additionalProp1": {}
+        },
+        "state": "NEW",
+        "id": "aaff-9ec6-4711-ad3f",
+        "meta": {},
+        "terms": "string",
+        "token": {
+        "meta": {},
+        "validityDuration": {}
+        }
+    }
+]

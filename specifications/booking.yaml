@@ -40,7 +40,7 @@ paths:
       tags:
         - Listing
       parameters:
-        - name: from
+        - name: fromP
           description: 'User''s location in comma separated form e.g. 60.123,27.456'
           in: query
           required: true
