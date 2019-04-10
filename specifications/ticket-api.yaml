@@ -101,7 +101,7 @@ components:
           enum:
             - EUR
         amount:
-          type: string
+          type: number
     identity:
       type: object
       properties:
