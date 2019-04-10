@@ -1,0 +1,32 @@
+openapi: 3.0.0
+servers: []
+info:
+  version: 0.1.0
+  title: Static file yaml
+  description: This is a API specification for the static files of the mock server
+  contact:
+    name: MaaS Alliance
+    url: 'https://maas-alliance.eu/'
+  license:
+    name: MIT
+    url: 'http://opensource.org/licenses/MIT'
+tags:
+  - name: Static
+    description: Deliver static files like redoc documentation
+    externalDocs:
+      description: idea found here
+      url: 'https://github.com/zalando/connexion/issues/441'
+paths:
+  /:
+    get:
+      operationId: api.static_redoc
+      description: HTML file with rendered OpenAPI reference.
+      tags:
+        - Static
+      responses:
+        '200':
+          description: Successfully loaded html page
+          content: 
+            text/html:
+              schema:
+                type: string
