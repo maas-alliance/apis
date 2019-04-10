@@ -8,8 +8,8 @@ info:
     name: MaaS Alliance
     url: 'https://maas-alliance.eu/'
   license:
-    name: MIT
-    url: 'http://opensource.org/licenses/MIT'
+    name: Apache 2.0
+    url: 'https://github.com/maas-alliance/apis/blob/master/LICENSE'
 tags:
   - name: Static
     description: Deliver static files like redoc documentation
