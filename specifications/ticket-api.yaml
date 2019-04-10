@@ -165,7 +165,7 @@ components:
             - QRCODE
             - NFC
             - SMS
-        itinrary-id:
+        itinerary-id:
           description: Unique identifier for the itinerary
           type: string
           format: uuid
