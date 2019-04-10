@@ -148,11 +148,11 @@ components:
             - type: CREDIT
               issuer: credit.example.com
               data: credit-visa
-        supportedTickets:
+        supported-tickets:
           description: List of supported ticket types by the client
           type: array
           xml:
-            name: supportedTicket
+            name: supported-ticket
           items:
             type: string
             enum:
