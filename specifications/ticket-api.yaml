@@ -104,6 +104,7 @@ components:
           type: number
     identity:
       type: object
+      description: A unique way of identifying an individual.
       properties:
         type:
           type: string
