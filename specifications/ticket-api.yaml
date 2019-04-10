@@ -187,7 +187,7 @@ components:
           format: date-time
         price:
           $ref: '#/components/schemas/price'
-        ticketFormat:
+        ticket-format:
           type: array
           description: Ticket types included in the bundle provided by this transaction
           items:
