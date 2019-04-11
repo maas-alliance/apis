@@ -1,17 +1,15 @@
 import json
 import flask
 
-
-# TODO - how to cope with optional parameters?
-# TODO - from as Parameter name is not a good choice as the mapping here leads to an invalid code syntax ? 
-# TODO -    how to map parameters in API to handler parameters?
-# - 
-# changed from to fromP because from is a reserved word in Python
-def bookings_options_get(_from, to, startTime):
-    # do something
+# -----------------
+# /bookings/options GET
+# Parameter in: from, to, startTime
+# "from" is mandatory
+ 
+def bookings_options_get(**options):
+    # you can get the parameters by options["from"]
     print("/bookings/options/ GET")
-    return 'Message: {}'.format(to), 200
-
+    return 'Message: {}'.format(options["from"]), 200
 
 # -----------------
 # /bookings GET
