@@ -122,6 +122,8 @@ paths:
             items:
               type: string
               enum:
+                - maas-api
+                - maas-booking
                 - route-gtfs
                 - route-netex
                 - routing-otp
@@ -251,6 +253,8 @@ components:
                 type: string
                 description: Type of the service API
                 enum:
+                  - maas-api
+                  - maas-booking
                   - route-gtfs
                   - route-netex
                   - routing-otp
