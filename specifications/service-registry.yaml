@@ -55,7 +55,7 @@ paths:
           description: Successful operation
         '403':
           description: Catalog announcement forbidden
-        '405':
+        '400':
           description: Invalid input
   /catalogs/list:
     get:
