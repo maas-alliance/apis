@@ -134,17 +134,17 @@ paths:
             uniqueItems: true
         - in: query
           name: sort
-          description: Sort service providers in specified order
+          description: Order the returned services by specified criteria. Used with limit-option.
           schema:
             type: string
             uniqueItems: true
             enum:
               - rating
               - popularity
-              - alpha
+              - alphabetical
         - in: query
           name: limit
-          description: Limit the maximum of the returned match to the specified number
+          description: Sets the maximum number of services the query will return. Used with sort-option to set the selection criteria. 
           schema:
             type: integer
       responses:
